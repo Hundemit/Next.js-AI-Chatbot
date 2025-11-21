@@ -40,7 +40,7 @@ export const PromptInputTextarea = ({
   onChange,
   className,
   placeholder = "What would you like to know?",
-  minHeight = 48,
+  minHeight = 0,
   maxHeight = 164,
   ...props
 }: PromptInputTextareaProps) => {

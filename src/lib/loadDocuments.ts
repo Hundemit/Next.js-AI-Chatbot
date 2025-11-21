@@ -1,10 +1,12 @@
 import { readFile, readdir } from "fs/promises";
 import { join } from "path";
 
-const DATA_DIR = join(process.cwd(), "src", "data");
+const DATA_DIR = join(process.cwd(), "src", "data", "system-messages");
 const DOCUMENTS_DIR = join(DATA_DIR, "documents");
 const SYSTEM_PROMPT_PATH = join(DATA_DIR, "system-prompt.txt");
 
+const INITIAL_SUGGESTIONS_PATH = join(DATA_DIR, "initial-suggestions.json");
+const SUGGESTION_PROMPT_PATH = join(DATA_DIR, "suggestion-prompt.txt");
 /**
  * Lädt den System-Prompt aus der system-prompt.txt Datei
  * @returns Der System-Prompt als String, oder null falls die Datei nicht existiert
@@ -16,6 +18,23 @@ export async function loadSystemPrompt(): Promise<string | null> {
   } catch (error) {
     console.warn("System-Prompt Datei nicht gefunden:", SYSTEM_PROMPT_PATH);
     return null;
+  }
+}
+
+/**
+ * Lädt den Suggestion-Prompt aus der suggestion-prompt.txt Datei
+ * @returns Der Suggestion-Prompt als String, oder null falls die Datei nicht existiert
+ */
+export async function loadSuggestionPrompt(): Promise<string> {
+  try {
+    const content = await readFile(SUGGESTION_PROMPT_PATH, "utf-8");
+    return content.trim();
+  } catch (error) {
+    console.warn(
+      "Suggestion Prompt Datei nicht gefunden:",
+      SUGGESTION_PROMPT_PATH
+    );
+    return "No suggestion prompt found";
   }
 }
 
@@ -94,3 +113,30 @@ export async function loadFullContext(
   return parts.join("\n");
 }
 
+/**
+ * Lädt die Initial Suggestions aus der initial-suggestions.json Datei
+ * @returns Ein Array von Suggestions als Strings, oder ein leeres Array falls die Datei nicht existiert
+ */
+export async function loadInitialSuggestions(): Promise<string[]> {
+  try {
+    const content = await readFile(INITIAL_SUGGESTIONS_PATH, "utf-8");
+    const suggestions = JSON.parse(content);
+
+    // Validiere, dass es ein Array von Strings ist
+    if (!Array.isArray(suggestions)) {
+      console.warn("Initial Suggestions sind kein Array");
+      return [];
+    }
+
+    // Filtere nur Strings und entferne leere Einträge
+    return suggestions.filter(
+      (s): s is string => typeof s === "string" && s.trim().length > 0
+    );
+  } catch (error) {
+    console.warn(
+      "Initial Suggestions Datei nicht gefunden:",
+      INITIAL_SUGGESTIONS_PATH
+    );
+    return [];
+  }
+}
