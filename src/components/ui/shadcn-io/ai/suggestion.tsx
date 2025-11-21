@@ -15,7 +15,7 @@ export const Suggestions = ({
   ...props
 }: SuggestionsProps) => (
   <ScrollArea
-    className="w-full overflow-x-auto whitespace-nowrap bg-transparent"
+    className="w-full overflow-x-auto bg-transparent whitespace-nowrap"
     {...props}
   >
     <div className={cn("flex w-max flex-nowrap items-center gap-2", className)}>
@@ -49,8 +49,8 @@ export const Suggestion = ({
     <BlurFade delay={index * 0.1} key={index}>
       <Button
         className={cn(
-          "cursor-pointer rounded-full px-2 h-6  text-xs",
-          className
+          "h-6 cursor-pointer rounded-full px-2 text-xs",
+          className,
         )}
         onClick={handleClick}
         size={size}

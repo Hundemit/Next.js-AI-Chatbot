@@ -26,9 +26,11 @@ export function useInitialSuggestions(): UseInitialSuggestionsReturn {
 
       try {
         const response = await fetch("/api/initial-suggestions");
-        
+
         if (!response.ok) {
-          throw new Error(`Failed to load initial suggestions: ${response.statusText}`);
+          throw new Error(
+            `Failed to load initial suggestions: ${response.statusText}`,
+          );
         }
 
         const data = await response.json();
@@ -52,5 +54,3 @@ export function useInitialSuggestions(): UseInitialSuggestionsReturn {
     error,
   };
 }
-
-
