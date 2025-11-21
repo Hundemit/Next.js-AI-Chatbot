@@ -1,7 +1,10 @@
 "use client";
 
 import { memo } from "react";
+
 import type { UIMessage } from "@ai-sdk/react";
+
+import { BlurFade } from "@/components/ui/blur-fade";
 import {
   Conversation,
   ConversationContent,
@@ -14,7 +17,6 @@ import {
   MessageContent,
 } from "@/components/ui/shadcn-io/ai/message";
 import { Response } from "@/components/ui/shadcn-io/ai/response";
-import { BlurFade } from "@/components/ui/blur-fade";
 import { extractTextFromMessage, isMessageEmpty } from "@/lib/chatUtils";
 import { USER_AVATAR_URL, ASSISTANT_AVATAR_URL } from "@/lib/constants";
 

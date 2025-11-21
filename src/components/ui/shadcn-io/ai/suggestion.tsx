@@ -1,11 +1,11 @@
 "use client";
 
+import type { ComponentProps } from "react";
+
+import { BlurFade } from "@/components/ui/blur-fade";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import type { ComponentProps } from "react";
-import { BlurFade } from "@/components/ui/blur-fade";
 
 export type SuggestionsProps = ComponentProps<typeof ScrollArea>;
 

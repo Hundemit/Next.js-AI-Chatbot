@@ -1,8 +1,10 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { RotateCcwIcon } from "lucide-react";
 import { memo } from "react";
+
+import { RotateCcwIcon } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 
 interface ChatHeaderProps {
   title: string;

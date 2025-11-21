@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import type { Suggestion, ChatLoadingStatus } from "@/lib/types";
+
+import type { Suggestion } from "@/lib/types";
 
 interface UseInitialSuggestionsReturn {
   suggestions: Suggestion[];

@@ -1,5 +1,6 @@
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { convertToModelMessages, streamText, type UIMessage } from "ai";
+
 import { loadFullContext } from "@/lib/loadDocuments";
 
 // Allow streaming responses up to 30 seconds

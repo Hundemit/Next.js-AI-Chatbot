@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
+
 import { UIMessage } from "@ai-sdk/react";
 import type { ChatStatus } from "ai";
+
 import { extractTextFromMessage, hasUserMessages } from "@/lib/chatUtils";
 import type { Suggestion } from "@/lib/types";
 

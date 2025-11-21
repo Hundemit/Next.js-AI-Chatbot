@@ -1,10 +1,7 @@
-import {
-  loadFullContext,
-  loadSuggestionPrompt,
-  loadSystemPrompt,
-} from "@/lib/loadDocuments";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { convertToModelMessages, generateText, type UIMessage } from "ai";
+
+import { loadSuggestionPrompt } from "@/lib/loadDocuments";
 
 // Allow responses up to 30 seconds
 export const maxDuration = 30;

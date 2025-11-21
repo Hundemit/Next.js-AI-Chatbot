@@ -1,15 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+
 import { UIMessage, useChat } from "@ai-sdk/react";
 import { nanoid } from "nanoid";
-import Noise from "@/components/Noise";
+
 import { ChatHeader } from "./ChatHeader";
+import { ChatInput } from "./ChatInput";
 import { ChatMessages } from "./ChatMessages";
 import { ChatSuggestions } from "./ChatSuggestions";
-import { ChatInput } from "./ChatInput";
-import { useSuggestions } from "@/hooks/useSuggestions";
+
 import { useInitialSuggestions } from "@/hooks/useInitialSuggestions";
+import { useSuggestions } from "@/hooks/useSuggestions";
 import { hasUserMessages } from "@/lib/chatUtils";
 import {
   MODELS,

@@ -1,7 +1,9 @@
+import type { ComponentProps, HTMLAttributes } from "react";
+
+import type { UIMessage } from "ai";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import type { UIMessage } from "ai";
-import type { ComponentProps, HTMLAttributes } from "react";
 
 export type MessageProps = HTMLAttributes<HTMLDivElement> & {
   from: UIMessage["role"];

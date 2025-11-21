@@ -1,5 +1,16 @@
 "use client";
 
+import {
+  type ComponentProps,
+  useCallback,
+  useEffect,
+  useState,
+  createContext,
+  useContext,
+} from "react";
+
+import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import {
   Carousel,
@@ -13,16 +24,6 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { cn } from "@/lib/utils";
-import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
-import {
-  type ComponentProps,
-  useCallback,
-  useEffect,
-  useState,
-  useRef,
-  createContext,
-  useContext,
-} from "react";
 
 // Context to share carousel API with child components
 const CarouselApiContext = createContext<CarouselApi | undefined>(undefined);

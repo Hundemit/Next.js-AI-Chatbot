@@ -1,5 +1,6 @@
-import { loadInitialSuggestions } from "@/lib/loadDocuments";
 import { NextResponse } from "next/server";
+
+import { loadInitialSuggestions } from "@/lib/loadDocuments";
 
 export async function GET() {
   try {

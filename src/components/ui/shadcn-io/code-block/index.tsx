@@ -1,5 +1,19 @@
 'use client';
 
+import type {
+  ComponentProps,
+  HTMLAttributes,
+  ReactElement,
+  ReactNode,
+} from 'react';
+import {
+  cloneElement,
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
+
 import {
   type IconType,
   SiAstro,
@@ -73,19 +87,7 @@ import {
 } from '@icons-pack/react-simple-icons';
 import { useControllableState } from '@radix-ui/react-use-controllable-state';
 import { CheckIcon, CopyIcon } from 'lucide-react';
-import type {
-  ComponentProps,
-  HTMLAttributes,
-  ReactElement,
-  ReactNode,
-} from 'react';
-import {
-  cloneElement,
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-} from 'react';
+
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -344,7 +346,6 @@ export type CodeBlockFilenameProps = HTMLAttributes<HTMLDivElement> & {
 };
 
 export const CodeBlockFilename = ({
-  className,
   icon,
   value,
   children,

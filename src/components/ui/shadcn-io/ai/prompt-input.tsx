@@ -1,5 +1,15 @@
 "use client";
 
+import type {
+  ComponentProps,
+  HTMLAttributes,
+  KeyboardEventHandler,
+} from "react";
+import { Children } from "react";
+
+import type { ChatStatus } from "ai";
+import { Loader2Icon, SendIcon, SquareIcon, XIcon } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -10,14 +20,6 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import type { ChatStatus } from "ai";
-import { Loader2Icon, SendIcon, SquareIcon, XIcon } from "lucide-react";
-import type {
-  ComponentProps,
-  HTMLAttributes,
-  KeyboardEventHandler,
-} from "react";
-import { Children } from "react";
 
 export type PromptInputProps = HTMLAttributes<HTMLFormElement>;
 
@@ -40,8 +42,6 @@ export const PromptInputTextarea = ({
   onChange,
   className,
   placeholder = "What would you like to know?",
-  minHeight = 0,
-  maxHeight = 164,
   ...props
 }: PromptInputTextareaProps) => {
   const handleKeyDown: KeyboardEventHandler<HTMLTextAreaElement> = (e) => {
@@ -144,7 +144,6 @@ export const PromptInputSubmit = ({
   variant = "default",
   size = "default",
   status,
-  children,
   isInput,
   ...props
 }: PromptInputSubmitProps) => {

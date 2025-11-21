@@ -9,7 +9,6 @@ import { usePathname } from "next/navigation";
 import { ChevronRight, Github } from "lucide-react";
 
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
   NavigationMenuContent,

@@ -15,7 +15,7 @@ export async function loadSystemPrompt(): Promise<string | null> {
   try {
     const content = await readFile(SYSTEM_PROMPT_PATH, "utf-8");
     return content.trim();
-  } catch (error) {
+  } catch {
     console.warn("System-Prompt Datei nicht gefunden:", SYSTEM_PROMPT_PATH);
     return null;
   }
@@ -29,7 +29,7 @@ export async function loadSuggestionPrompt(): Promise<string> {
   try {
     const content = await readFile(SUGGESTION_PROMPT_PATH, "utf-8");
     return content.trim();
-  } catch (error) {
+  } catch {
     console.warn(
       "Suggestion Prompt Datei nicht gefunden:",
       SUGGESTION_PROMPT_PATH
@@ -48,7 +48,7 @@ export async function loadDocument(filename: string): Promise<string | null> {
     const filePath = join(DOCUMENTS_DIR, filename);
     const content = await readFile(filePath, "utf-8");
     return content.trim();
-  } catch (error) {
+  } catch {
     console.warn(`Dokument nicht gefunden: ${filename}`);
     return null;
   }
@@ -75,7 +75,7 @@ export async function loadAllDocuments(): Promise<Record<string, string>> {
     }
 
     return documents;
-  } catch (error) {
+  } catch {
     console.warn("Documents Ordner nicht gefunden:", DOCUMENTS_DIR);
     return {};
   }
@@ -132,7 +132,7 @@ export async function loadInitialSuggestions(): Promise<string[]> {
     return suggestions.filter(
       (s): s is string => typeof s === "string" && s.trim().length > 0
     );
-  } catch (error) {
+  } catch {
     console.warn(
       "Initial Suggestions Datei nicht gefunden:",
       INITIAL_SUGGESTIONS_PATH

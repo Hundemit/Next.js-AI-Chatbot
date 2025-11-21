@@ -1,44 +1,11 @@
-import Image from "next/image";
-
-import {
-  ArrowRight,
-  ArrowUpRight,
-  Blend,
-  ChartNoAxesColumn,
-  CircleDot,
-  CirclePlay,
-  Diamond,
-} from "lucide-react";
-
-import { DashedLine } from "@/components/dashed-line";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
+
+import { ArrowRight, ArrowUpRight } from "lucide-react";
+
 import { Chatbot } from "@/components/chatbot";
 import DotGrid from "@/components/DotGrid";
-
-const features = [
-  {
-    title: "Tailored workflows",
-    description: "Track progress across custom issue flows for your team.",
-    icon: CircleDot,
-  },
-  {
-    title: "Cross-team projects",
-    description: "Collaborate across teams and departments.",
-    icon: Blend,
-  },
-  {
-    title: "Milestones",
-    description: "Break projects down into concrete phases.",
-    icon: Diamond,
-  },
-  {
-    title: "Progress insights",
-    description: "Track scope, velocity, and progress over time.",
-    icon: ChartNoAxesColumn,
-  },
-];
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 export const Hero = () => {
   return (
