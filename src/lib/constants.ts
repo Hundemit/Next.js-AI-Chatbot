@@ -15,15 +15,9 @@ export const MODELS: Model[] = [
 export const DEFAULT_MODEL_ID = MODELS[0].id;
 
 /**
- * Initial assistant message text
- */
-export const INITIAL_MESSAGE_TEXT =
-  "Hallo! Ich bin dein AI-Assistent. Wie kann ich dir helfen?";
-
-/**
  * Chatbot title displayed in header
  */
-export const CHATBOT_TITLE = "Hindemit AI";
+export const CHATBOT_TITLE = "Nordi AI";
 
 /**
  * User avatar URL
@@ -35,3 +29,10 @@ export const USER_AVATAR_URL =
  * Assistant avatar URL
  */
 export const ASSISTANT_AVATAR_URL = "/logo.png";
+
+/**
+ * Typewriter effect speed in milliseconds per character.
+ * Set to 0 to disable the typewriter effect (show text immediately).
+ * Example: 20 = 20ms per character (50 characters per second)
+ */
+export const TYPEWRITER_SPEED = 20; // 0 = disabled, 20 = fast, 50 = medium, 100 = slow

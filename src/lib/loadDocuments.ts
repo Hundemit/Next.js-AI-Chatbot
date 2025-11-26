@@ -4,8 +4,6 @@ import { join } from "path";
 const DATA_DIR = join(process.cwd(), "src", "data", "system-messages");
 const DOCUMENTS_DIR = join(DATA_DIR, "documents");
 const SYSTEM_PROMPT_PATH = join(DATA_DIR, "system-prompt.txt");
-
-const INITIAL_SUGGESTIONS_PATH = join(DATA_DIR, "initial-suggestions.json");
 const SUGGESTION_PROMPT_PATH = join(DATA_DIR, "suggestion-prompt.txt");
 /**
  * Lädt den System-Prompt aus der system-prompt.txt Datei
@@ -15,7 +13,7 @@ export async function loadSystemPrompt(): Promise<string | null> {
   try {
     const content = await readFile(SYSTEM_PROMPT_PATH, "utf-8");
     return content.trim();
-  } catch (error) {
+  } catch {
     console.warn("System-Prompt Datei nicht gefunden:", SYSTEM_PROMPT_PATH);
     return null;
   }
@@ -29,10 +27,10 @@ export async function loadSuggestionPrompt(): Promise<string> {
   try {
     const content = await readFile(SUGGESTION_PROMPT_PATH, "utf-8");
     return content.trim();
-  } catch (error) {
+  } catch {
     console.warn(
       "Suggestion Prompt Datei nicht gefunden:",
-      SUGGESTION_PROMPT_PATH
+      SUGGESTION_PROMPT_PATH,
     );
     return "No suggestion prompt found";
   }
@@ -48,7 +46,7 @@ export async function loadDocument(filename: string): Promise<string | null> {
     const filePath = join(DOCUMENTS_DIR, filename);
     const content = await readFile(filePath, "utf-8");
     return content.trim();
-  } catch (error) {
+  } catch {
     console.warn(`Dokument nicht gefunden: ${filename}`);
     return null;
   }
@@ -74,8 +72,10 @@ export async function loadAllDocuments(): Promise<Record<string, string>> {
       }
     }
 
+    console.log("Documents:", documents);
+
     return documents;
-  } catch (error) {
+  } catch {
     console.warn("Documents Ordner nicht gefunden:", DOCUMENTS_DIR);
     return {};
   }
@@ -87,7 +87,7 @@ export async function loadAllDocuments(): Promise<Record<string, string>> {
  * @returns Der kombinierte Kontext als String
  */
 export async function loadFullContext(
-  includeDocuments: boolean = true
+  includeDocuments: boolean = true,
 ): Promise<string> {
   const parts: string[] = [];
 
@@ -114,29 +114,42 @@ export async function loadFullContext(
 }
 
 /**
- * Lädt die Initial Suggestions aus der initial-suggestions.json Datei
- * @returns Ein Array von Suggestions als Strings, oder ein leeres Array falls die Datei nicht existiert
+ * Lädt relevanten Kontext basierend auf User-Query (RAG)
+ * @param userQuery Die User-Anfrage
+ * @returns Der kombinierte Kontext mit System-Prompt und relevanten Chunks
  */
-export async function loadInitialSuggestions(): Promise<string[]> {
+export async function loadRelevantContext(userQuery: string): Promise<string> {
+  const parts: string[] = [];
+
+  // System-Prompt laden
+  const systemPrompt = await loadSystemPrompt();
+  if (systemPrompt) {
+    parts.push(systemPrompt);
+  }
+
   try {
-    const content = await readFile(INITIAL_SUGGESTIONS_PATH, "utf-8");
-    const suggestions = JSON.parse(content);
+    const { loadRelevantContext: loadRAGContext } = await import("./rag/index");
+    const ragContext = await loadRAGContext(userQuery);
 
-    // Validiere, dass es ein Array von Strings ist
-    if (!Array.isArray(suggestions)) {
-      console.warn("Initial Suggestions sind kein Array");
-      return [];
+    if (ragContext.context) {
+      parts.push("\n\n");
+      parts.push(ragContext.context);
     }
-
-    // Filtere nur Strings und entferne leere Einträge
-    return suggestions.filter(
-      (s): s is string => typeof s === "string" && s.trim().length > 0
-    );
   } catch (error) {
     console.warn(
-      "Initial Suggestions Datei nicht gefunden:",
-      INITIAL_SUGGESTIONS_PATH
+      "RAG nicht verfügbar, Fallback auf Standard-Dokumente:",
+      error,
     );
-    return [];
+    const documents = await loadAllDocuments();
+    const documentEntries = Object.entries(documents);
+
+    if (documentEntries.length > 0) {
+      parts.push("\n\n## Verfügbare Informationen:\n");
+      documentEntries.forEach(([filename, content]) => {
+        parts.push(`\n### ${filename}\n\n${content}\n`);
+      });
+    }
   }
+
+  return parts.join("\n");
 }

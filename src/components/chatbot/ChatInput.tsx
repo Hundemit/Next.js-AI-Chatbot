@@ -1,7 +1,9 @@
 "use client";
 
 import { memo } from "react";
-import type { ChatStatus } from "ai";
+
+import { useChatContext } from "./ChatContext";
+
 import {
   PromptInput,
   PromptInputModelSelect,
@@ -14,60 +16,52 @@ import {
   PromptInputToolbar,
   PromptInputTools,
 } from "@/components/ui/shadcn-io/ai/prompt-input";
-import type { Model } from "@/lib/types";
-
-interface ChatInputProps {
-  value: string;
-  onChange: (value: string) => void;
-  onSubmit: (e: React.FormEvent) => void;
-  selectedModel: string;
-  onModelChange: (modelId: string) => void;
-  models: Model[];
-  status: ChatStatus;
-  disabled?: boolean;
-}
 
 /**
  * ChatInput component - handles user input with model selection.
  * Memoized for performance optimization.
  */
-export const ChatInput = memo(function ChatInput({
-  value,
-  onChange,
-  onSubmit,
-  selectedModel,
-  onModelChange,
-  models,
-  status,
-  disabled = false,
-}: ChatInputProps) {
+export const ChatInput = memo(function ChatInput() {
+  const {
+    input,
+    handleInputChange,
+    handleSubmit,
+    selectedModel,
+    handleModelChange,
+    models,
+    isChatInProgress,
+  } = useChatContext();
+
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    onChange(e.currentTarget.value);
+    handleInputChange(e.currentTarget.value);
   };
 
   return (
     <div className="border-t">
       <PromptInput
-        className="border-none shadow-none rounded-none"
-        onSubmit={onSubmit}
+        className="rounded-none border-none shadow-none"
+        onSubmit={handleSubmit}
       >
         <PromptInputTextarea
           className="min-h-0"
           minHeight={0}
-          value={value}
+          value={input}
           onChange={handleChange}
           placeholder="Type your message..."
-          disabled={disabled}
+          disabled={isChatInProgress}
           aria-label="Chat input"
         />
         <PromptInputToolbar>
           <PromptInputTools>
             <PromptInputModelSelect
               value={selectedModel}
-              onValueChange={onModelChange}
+              onValueChange={handleModelChange}
             >
-              <PromptInputModelSelectTrigger aria-label="Select AI model">
-                <PromptInputModelSelectValue placeholder="Select a model..." />
+              <PromptInputModelSelectTrigger
+                className="gap-1 bg-transparent text-xs dark:bg-transparent"
+                aria-label="Select AI model"
+              >
+                <PromptInputModelSelectValue />
               </PromptInputModelSelectTrigger>
               <PromptInputModelSelectContent>
                 {models.map((model) => (
@@ -79,9 +73,8 @@ export const ChatInput = memo(function ChatInput({
             </PromptInputModelSelect>
           </PromptInputTools>
           <PromptInputSubmit
-            disabled={!value.trim() || disabled}
-            isInput={value.trim() ? true : false}
-            status={status}
+            disabled={!input.trim() && !isChatInProgress}
+            isInput={input.trim() ? true : false}
             aria-label="Send message"
           />
         </PromptInputToolbar>
@@ -89,5 +82,3 @@ export const ChatInput = memo(function ChatInput({
     </div>
   );
 });
-
-

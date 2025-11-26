@@ -1,78 +1,121 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
+
+import { useChatContext } from "./ChatContext";
+
 import {
   Suggestion,
   Suggestions,
 } from "@/components/ui/shadcn-io/ai/suggestion";
-import type { Suggestion as SuggestionType } from "@/lib/types";
-
-interface ChatSuggestionsProps {
-  initialSuggestions: SuggestionType[];
-  dynamicSuggestions: SuggestionType[];
-  hasUserMessages: boolean;
-  onSuggestionClick: (suggestion: string) => void;
-  isLoadingInitial?: boolean;
-  initialSuggestionsError?: Error | null;
-}
 
 /**
  * ChatSuggestions component - conditionally renders initial or dynamic suggestions.
  * Memoized for performance optimization.
  */
-export const ChatSuggestions = memo(function ChatSuggestions({
-  initialSuggestions,
-  dynamicSuggestions,
-  hasUserMessages,
-  onSuggestionClick,
-  isLoadingInitial = false,
-  initialSuggestionsError = null,
-}: ChatSuggestionsProps) {
-  // Initial Suggestions - shown when no user messages exist
-  if (!hasUserMessages) {
-    // Show loading state
-    if (isLoadingInitial) {
-      return (
-        <div className="w-full p-2 border-t border-dashed">
-          <div className="text-xs text-muted-foreground">Loading suggestions...</div>
-        </div>
-      );
-    }
+export const ChatSuggestions = memo(function ChatSuggestions() {
+  const {
+    initialSuggestions,
+    suggestions: dynamicSuggestions,
+    hasUserMessages,
+    handleSuggestionClick,
+    isLoadingSuggestions,
+    isChatInProgress,
+    stoppedSuggestions,
+  } = useChatContext();
+  const [disabled, setDisabled] = useState(
+    (isLoadingSuggestions && !stoppedSuggestions) ||
+      (isChatInProgress && !stoppedSuggestions),
+  );
 
-    // Show error state (non-blocking, just don't show suggestions)
-    if (initialSuggestionsError) {
-      return null;
-    }
-
-    if (initialSuggestions.length === 0) return null;
-    return (
-      <Suggestions className="w-full p-2 border-t border-dashed">
-        {initialSuggestions.map((suggestion, index) => (
-          <Suggestion
-            key={index}
-            index={index}
-            suggestion={suggestion}
-            onClick={onSuggestionClick}
-          />
-        ))}
-      </Suggestions>
+  useEffect(() => {
+    setDisabled(
+      (isLoadingSuggestions && !stoppedSuggestions) ||
+        (isChatInProgress && !stoppedSuggestions),
     );
-  }
+  }, [isLoadingSuggestions, stoppedSuggestions, isChatInProgress]);
 
-  // Dynamic Suggestions - shown after user messages
-  if (dynamicSuggestions.length === 0) return null;
+  // Show dynamic suggestions when user has messages and dynamic suggestions are available
+  const showDynamic = useMemo(() => {
+    return hasUserMessages && dynamicSuggestions.length > 0;
+  }, [hasUserMessages, dynamicSuggestions.length]);
+
+  // Determine which suggestions to display
+  const suggestions = useMemo(() => {
+    return showDynamic ? dynamicSuggestions : initialSuggestions;
+  }, [showDynamic, dynamicSuggestions, initialSuggestions]);
 
   return (
-    <Suggestions className="w-full p-2 gap-2 border-t">
-      {dynamicSuggestions.map((suggestion, index) => (
+    <Suggestions className="w-full gap-2 border-t border-dashed p-2">
+      {/* <Badge
+        className={cn(
+          "text-muted-foreground text-xs",
+          chatIsStopped ? "bg-green-500 text-white" : "bg-red-500 text-white",
+        )}
+      >
+        {chatIsStopped ? "chatIsStopped: true" : "chatIsStopped: false"}
+      </Badge>
+      <Badge
+        className={cn(
+          "text-muted-foreground text-xs",
+          isChatbotTyping ? "bg-green-500 text-white" : "bg-red-500 text-white",
+        )}
+      >
+        {isChatbotTyping ? "isChatbotTyping: true" : "isChatbotTyping: false"}
+      </Badge>
+      <Badge
+        className={cn(
+          "text-muted-foreground text-xs",
+          isLoadingSuggestions
+            ? "bg-green-500 text-white"
+            : "bg-red-500 text-white",
+        )}
+      >
+        {isLoadingSuggestions
+          ? "isLoadingSuggestions: true"
+          : "isLoadingSuggestions: false"}
+      </Badge>
+      <Badge
+        className={cn(
+          "text-muted-foreground text-xs",
+          disabled ? "bg-green-500 text-white" : "bg-red-500 text-white",
+        )}
+      >
+        {disabled ? "DisabledSuggestions: true" : "DisabledSuggestions: false"}
+      </Badge>
+      <Badge
+        className={cn(
+          "text-muted-foreground text-xs",
+          isChatInProgress
+            ? "bg-green-500 text-white"
+            : "bg-red-500 text-white",
+        )}
+      >
+        {isChatInProgress
+          ? "isChatInProgress: true"
+          : "isChatInProgress: false"}
+      </Badge>
+      <Badge
+        className={cn(
+          "text-muted-foreground text-xs",
+          stoppedSuggestions
+            ? "bg-green-500 text-white"
+            : "bg-red-500 text-white",
+        )}
+      >
+        {stoppedSuggestions
+          ? "stoppedSuggestions: true"
+          : "stoppedSuggestions: false"}
+      </Badge> */}
+      {suggestions.map((suggestion, index) => (
         <Suggestion
-          key={index}
+          key={suggestion}
           index={index}
           suggestion={suggestion}
-          onClick={onSuggestionClick}
+          onClick={handleSuggestionClick}
+          disabled={disabled}
         />
       ))}
     </Suggestions>
   );
 });
-

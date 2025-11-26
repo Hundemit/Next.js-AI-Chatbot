@@ -1,6 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
 import { UIMessage } from "@ai-sdk/react";
 import type { ChatStatus } from "ai";
+
 import { extractTextFromMessage, hasUserMessages } from "@/lib/chatUtils";
 import type { Suggestion } from "@/lib/types";
 
@@ -14,6 +16,8 @@ interface UseSuggestionsReturn {
   suggestions: Suggestion[];
   isLoading: boolean;
   reset: () => void;
+  stop: () => void;
+  stopped: boolean;
 }
 
 /**
@@ -33,19 +37,45 @@ export function useSuggestions({
 }: UseSuggestionsParams): UseSuggestionsReturn {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [stopped, setStopped] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const reset = useCallback(() => {
+    // Abort any ongoing request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
     setSuggestions([]);
     setIsLoading(false);
+    setStopped(false);
+  }, []);
+
+  const stop = useCallback(() => {
+    // Abort any ongoing request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setStopped(true);
+    setIsLoading(false);
+
+    console.log("Suggestions stopped by user");
   }, []);
 
   useEffect(() => {
+    // Reset stopped flag when a new chat starts
+    if (status === "submitted") {
+      setStopped(false);
+    }
+
     const loadSuggestions = async () => {
       // Early returns for various conditions
       if (
         messages.length === 0 ||
         status === "submitted" ||
-        status === "streaming"
+        status === "streaming" ||
+        stopped
       ) {
         return;
       }
@@ -71,6 +101,10 @@ export function useSuggestions({
 
       setIsLoading(true);
 
+      // Create new AbortController for this request
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
+
       try {
         const response = await fetch("/api/suggestions", {
           method: "POST",
@@ -81,31 +115,63 @@ export function useSuggestions({
             messages: messages,
             model: selectedModel,
           }),
+          signal: abortController.signal,
         });
+
+        // Check if request was aborted
+        if (abortController.signal.aborted) {
+          return;
+        }
 
         if (response.ok) {
           const data = await response.json();
           setSuggestions(data.suggestions || []);
+          console.log("suggestions loaded successfully", data.suggestions);
         } else {
           setSuggestions([]);
+          console.log("suggestions not loaded");
         }
       } catch (error) {
+        // Ignore abort errors
+        if (error instanceof Error && error.name === "AbortError") {
+          return;
+        }
         console.error("Error loading suggestions:", error);
         setSuggestions([]);
       } finally {
-        setIsLoading(false);
+        // Only update loading state if this request wasn't aborted
+        if (!abortController.signal.aborted) {
+          setIsLoading(false);
+        }
+        // Clear the ref if this was the current request
+        if (abortControllerRef.current === abortController) {
+          abortControllerRef.current = null;
+        }
       }
     };
 
     // Debounce: Wait briefly before loading suggestions
+    // Only schedule if not already stopped
+    if (stopped) {
+      return;
+    }
     const timeoutId = setTimeout(loadSuggestions, 500);
 
-    return () => clearTimeout(timeoutId);
-  }, [messages, status, selectedModel]);
+    return () => {
+      clearTimeout(timeoutId);
+      // Abort any ongoing request when effect cleanup runs
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
+    };
+  }, [messages, status, stopped, selectedModel]);
 
   return {
     suggestions,
     isLoading,
     reset,
+    stop,
+    stopped,
   };
 }

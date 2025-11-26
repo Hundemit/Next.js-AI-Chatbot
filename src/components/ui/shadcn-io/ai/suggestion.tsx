@@ -1,11 +1,11 @@
 "use client";
 
+import type { ComponentProps } from "react";
+
+import { BlurFade } from "@/components/ui/blur-fade";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import type { ComponentProps } from "react";
-import { BlurFade } from "@/components/ui/blur-fade";
 
 export type SuggestionsProps = ComponentProps<typeof ScrollArea>;
 
@@ -15,10 +15,15 @@ export const Suggestions = ({
   ...props
 }: SuggestionsProps) => (
   <ScrollArea
-    className="w-full overflow-x-auto whitespace-nowrap bg-transparent"
+    className="w-full overflow-x-auto bg-transparent whitespace-nowrap"
     {...props}
   >
-    <div className={cn("flex w-max flex-nowrap items-center gap-2", className)}>
+    <div
+      className={cn(
+        "flex w-max flex-nowrap items-center gap-2 sm:flex-wrap",
+        className,
+      )}
+    >
       {children}
     </div>
     <ScrollBar className="hidden" orientation="horizontal" />
@@ -29,9 +34,11 @@ export type SuggestionProps = Omit<ComponentProps<typeof Button>, "onClick"> & {
   suggestion: string;
   onClick?: (suggestion: string) => void;
   index: number;
+  disabled?: boolean;
 };
 
 export const Suggestion = ({
+  disabled,
   index,
   suggestion,
   onClick,
@@ -46,16 +53,14 @@ export const Suggestion = ({
   };
 
   return (
-    <BlurFade delay={index * 0.1} key={index}>
+    <BlurFade cursornotallowed={disabled} delay={index * 0.1}>
       <Button
-        className={cn(
-          "cursor-pointer rounded-full px-2 h-6  text-xs",
-          className
-        )}
+        className={cn("h-6 rounded-full px-2 text-xs shadow-none", className)}
         onClick={handleClick}
         size={size}
         type="button"
         variant={variant}
+        disabled={disabled}
         {...props}
       >
         {children || suggestion}

@@ -1,10 +1,7 @@
-import {
-  loadFullContext,
-  loadSuggestionPrompt,
-  loadSystemPrompt,
-} from "@/lib/loadDocuments";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { convertToModelMessages, generateText, type UIMessage } from "ai";
+
+import { loadSuggestionPrompt } from "@/lib/loadDocuments";
 
 // Allow responses up to 30 seconds
 export const maxDuration = 30;
@@ -21,7 +18,7 @@ export async function POST(req: Request) {
     if (!process.env.OPENROUTER_API_KEY) {
       return new Response(
         JSON.stringify({ error: "OPENROUTER_API_KEY is not set" }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
+        { status: 500, headers: { "Content-Type": "application/json" } },
       );
     }
 
@@ -61,7 +58,7 @@ export async function POST(req: Request) {
         throw new Error("Response is not an array");
       }
       suggestions = suggestions.filter(
-        (s) => typeof s === "string" && s.trim().length > 0
+        (s) => typeof s === "string" && s.trim().length > 0,
       );
 
       // Begrenze auf maximal 5 Suggestions
@@ -79,7 +76,7 @@ export async function POST(req: Request) {
             .replace(/^[-*•]\s*/, "")
             .replace(/^"\s*/, "")
             .replace(/\s*"$/, "")
-            .trim()
+            .trim(),
         )
         .filter((line) => line.length > 0 && line.length < 100)
         .slice(0, 5);
