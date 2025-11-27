@@ -27,7 +27,7 @@ export const PromptInput = ({ className, ...props }: PromptInputProps) => (
   <form
     className={cn(
       "bg-card w-full divide-y overflow-hidden rounded-xl border shadow-sm",
-      className,
+      className
     )}
     {...props}
   />
@@ -77,7 +77,7 @@ export const PromptInputTextarea = ({
         "w-full resize-none rounded-none border-none p-3 shadow-none ring-0 outline-none",
         "field-sizing-content max-h-[6lh] bg-transparent dark:bg-transparent",
         "focus-visible:ring-0",
-        className,
+        className
       )}
       name="message"
       onChange={(e) => {
@@ -113,7 +113,7 @@ export const PromptInputTools = ({
     className={cn(
       "flex items-center gap-1",
       "[&_button:first-child]:rounded-bl-xl",
-      className,
+      className
     )}
     {...props}
   />
@@ -128,7 +128,7 @@ export const PromptInputButton = ({
   ...props
 }: PromptInputButtonProps) => {
   const newSize =
-    (size ?? Children.count(props.children) > 1) ? "default" : "icon";
+    size ?? Children.count(props.children) > 1 ? "default" : "icon";
 
   return (
     <Button
@@ -136,7 +136,7 @@ export const PromptInputButton = ({
         "shrink-0 gap-1.5 rounded-lg",
         variant === "ghost" && "text-muted-foreground",
         newSize === "default" && "px-3",
-        className,
+        className
       )}
       size={newSize}
       type="button"
@@ -163,8 +163,6 @@ export const PromptInputSubmit = ({
 
   if (status === "submitted" || status === "streaming" || isChatInProgress) {
     Icon = <Loader2Icon className="size-4 animate-spin" />;
-  } else if (status === "error") {
-    Icon = <XIcon className="size-4" />;
   }
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -187,7 +185,7 @@ export const PromptInputSubmit = ({
       <span
         className={cn(
           "w-0 overflow-hidden whitespace-nowrap transition-all duration-300 group-hover:w-8",
-          isInput || isChatInProgress ? "ml-0.5 w-9" : "ml-0 w-0",
+          isInput || isChatInProgress ? "ml-0.5 w-9" : "ml-0 w-0"
         )}
       >
         {isChatInProgress ? "Stop" : "Send"}
@@ -214,7 +212,7 @@ export const PromptInputModelSelectTrigger = ({
     className={cn(
       "text-muted-foreground border-none font-medium shadow-none transition-colors",
       'hover:bg-accent hover:text-foreground [&[aria-expanded="true"]]:bg-accent [&[aria-expanded="true"]]:text-foreground',
-      className,
+      className
     )}
     {...props}
   />

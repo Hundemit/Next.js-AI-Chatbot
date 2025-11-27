@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useState } from "react";
+import { memo, useState, useEffect } from "react";
 
 import copy from "copy-to-clipboard";
 import { CopyIcon, CheckIcon } from "lucide-react";
@@ -42,6 +42,25 @@ export const ChatMessages = memo(function ChatMessages() {
 
   const { messages, typewriterSpeed, isChatInProgress } = useChatContext();
   const [copied, setCopied] = useState(false);
+  const [showLoadingIndicator, setShowLoadingIndicator] = useState(false);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (
+      isChatInProgress &&
+      messages.length > 0 &&
+      messages[messages.length - 1]?.role === "user"
+    ) {
+      timer = setTimeout(() => {
+        setShowLoadingIndicator(true);
+      }, 500); // 500ms delay
+    } else {
+      setTimeout(() => {
+        setShowLoadingIndicator(false);
+      }, 500);
+    }
+    return () => clearTimeout(timer);
+  }, [isChatInProgress, messages]);
 
   const handleCopy = (textParts: string) => {
     setCopied(true);
@@ -115,7 +134,7 @@ export const ChatMessages = memo(function ChatMessages() {
                     }
                     className={cn(
                       "bg-primary p-1",
-                      message.role === "assistant" ? "" : "",
+                      message.role === "assistant" ? "" : ""
                     )}
                     name={message.role === "user" ? "User" : "AI"}
                   />
@@ -126,10 +145,11 @@ export const ChatMessages = memo(function ChatMessages() {
         })}
         {/* Show loading state immediately when user sends a message, before assistant message exists */}
         {isChatInProgress &&
+          showLoadingIndicator &&
           messages.length > 0 &&
           messages[messages.length - 1]?.role === "user" &&
           !messages.some(
-            (msg) => msg.role === "assistant" && isMessageEmpty(msg),
+            (msg) => msg.role === "assistant" && isMessageEmpty(msg)
           ) && (
             <div className="space-y-3">
               <BlurFade>

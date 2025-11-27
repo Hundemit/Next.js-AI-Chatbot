@@ -19,7 +19,7 @@ import {
   INITIAL_SUGGESTIONS,
 } from "@/data/system-messages/initial-information";
 import { useSuggestions } from "@/hooks/useSuggestions";
-import { hasUserMessages } from "@/lib/chatUtils";
+import { hasUserMessages, formatErrorMessage } from "@/lib/chatUtils";
 import { MODELS, DEFAULT_MODEL_ID, TYPEWRITER_SPEED } from "@/lib/constants";
 import type { Model, Suggestion } from "@/lib/types";
 
@@ -35,7 +35,7 @@ interface ChatContextType {
   status: ChatStatus;
   sendMessage: (
     message: { text: string },
-    options?: { body?: Record<string, unknown> },
+    options?: { body?: Record<string, unknown> }
   ) => void;
   stopChat: () => void;
   isChatInProgress: boolean;
@@ -55,6 +55,7 @@ interface ChatContextType {
   handleStop: () => void;
   handleModelChange: (modelId: string) => void;
   handleInputChange: (value: string) => void;
+  addErrorMessage: (error: unknown) => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -81,7 +82,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
         },
       ],
     }),
-    [],
+    []
   );
 
   const {
@@ -90,17 +91,46 @@ export function ChatProvider({ children }: ChatProviderProps) {
     status,
     setMessages,
     stop: stopChat,
-  } = useChat();
+    error,
+  } = useChat({
+    onError: (e) => {
+      addErrorMessage(e);
+    },
+  });
 
-  const [isChatInProgress, setIsChatInProgress] = useState(
-    status === "submitted" || status === "streaming" || isChatbotTyping,
+  const isChatInProgress = useMemo(
+    () => status === "submitted" || status === "streaming" || isChatbotTyping,
+    [status, isChatbotTyping]
+  );
+
+  // Function to add an error message to the chat
+  const addErrorMessage = useCallback(
+    (error: unknown) => {
+      console.error("Chat Error:", error); // Log the error for debugging
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          id: nanoid(),
+          role: "assistant",
+          parts: [
+            {
+              type: "text",
+              text: formatErrorMessage(error),
+            },
+          ],
+        },
+      ]);
+      // isChatInProgress wird nun über useMemo aktualisiert
+      setIsChatbotTyping(false);
+    },
+    [setMessages, setIsChatbotTyping]
   );
 
   useEffect(() => {
-    setIsChatInProgress(
-      status === "submitted" || status === "streaming" || isChatbotTyping,
-    );
-  }, [status, isChatbotTyping]);
+    // if (error) {
+    //   addErrorMessage(error);
+    // }
+  }, [error, addErrorMessage]);
 
   // Custom hooks for suggestions
   const {
@@ -117,20 +147,22 @@ export function ChatProvider({ children }: ChatProviderProps) {
 
   // Initialize messages with initial message
   useEffect(() => {
-    setMessages([initialMessage]);
-  }, [initialMessage, setMessages]);
+    if (messages.length === 0) {
+      setMessages([initialMessage]);
+    }
+  }, [initialMessage, setMessages, messages.length]);
 
   // Memoize hasUserMessages calculation
   const hasUserMessagesValue = useMemo(
     () => hasUserMessages(messages),
-    [messages],
+    [messages]
   );
 
   // Memoized handlers with useCallback
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
-      setIsChatInProgress(true);
+      // isChatInProgress wird nun über useMemo aktualisiert
       setChatIsStopped(false);
       if (input.trim()) {
         sendMessage(
@@ -139,12 +171,12 @@ export function ChatProvider({ children }: ChatProviderProps) {
             body: {
               model: selectedModel,
             },
-          },
+          }
         );
         setInput("");
       }
     },
-    [input, selectedModel, sendMessage],
+    [input, selectedModel, sendMessage]
   );
 
   const handleReset = useCallback(() => {
@@ -152,13 +184,14 @@ export function ChatProvider({ children }: ChatProviderProps) {
     stopChat();
     setInput("");
     resetSuggestions();
-    setIsChatInProgress(false);
+    // isChatInProgress wird nun über useMemo aktualisiert
+    setIsChatbotTyping(false);
   }, [
     setMessages,
     initialMessage,
     resetSuggestions,
     stopChat,
-    setIsChatInProgress,
+    setIsChatbotTyping,
   ]);
 
   const handleSuggestionClick = useCallback(
@@ -171,18 +204,19 @@ export function ChatProvider({ children }: ChatProviderProps) {
             body: {
               model: selectedModel,
             },
-          },
+          }
         );
       }
     },
-    [selectedModel, sendMessage, isChatInProgress],
+    [selectedModel, sendMessage, isChatInProgress]
   );
 
   const handleStop = useCallback(() => {
     stopChat();
     stopSuggestions();
     setChatIsStopped(true);
-    setIsChatInProgress(false);
+    // isChatInProgress wird nun über useMemo aktualisiert
+    setIsChatbotTyping(false);
   }, [stopChat, stopSuggestions, setChatIsStopped]);
 
   const handleModelChange = useCallback((modelId: string) => {
@@ -222,6 +256,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
     handleStop,
     handleModelChange,
     handleInputChange,
+    addErrorMessage,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
