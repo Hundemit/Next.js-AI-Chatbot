@@ -15,7 +15,6 @@ import { FileVectorStore } from "./vectorStore";
 
 const ENCODING = encodingForModel("gpt-4");
 
-
 // Embedding-Modell (OpenRouter unterstützt OpenAI-kompatible Embeddings)
 const EMBEDDING_MODEL = "text-embedding-3-small"; // Oder ein anderes Embedding-Modell
 
@@ -55,7 +54,7 @@ async function getEmbeddings(texts: string[]): Promise<number[][]> {
               model: EMBEDDING_MODEL,
               input: text,
             }),
-          },
+          }
         );
 
         if (!response.ok) {
@@ -92,7 +91,7 @@ async function getEmbedding(text: string): Promise<number[]> {
 function isSupportedFile(filePath: string): boolean {
   const ext = extname(filePath).toLowerCase();
   return RAG_CONFIG.supportedFormats.includes(
-    ext as (typeof RAG_CONFIG.supportedFormats)[number],
+    ext as (typeof RAG_CONFIG.supportedFormats)[number]
   );
 }
 
@@ -100,7 +99,7 @@ function isSupportedFile(filePath: string): boolean {
  * Indiziert alle Dateien aus der Knowledge Base
  */
 export async function indexKnowledgeBase(
-  forceReindex: boolean = false,
+  forceReindex: boolean = false
 ): Promise<{ indexed: number; skipped: number; errors: number }> {
   const vectorStore = new FileVectorStore();
   const knowledgeBasePath = RAG_CONFIG.knowledgeBasePath;
@@ -114,7 +113,7 @@ export async function indexKnowledgeBase(
     const { existsSync } = await import("fs");
     if (!existsSync(knowledgeBasePath)) {
       console.warn(
-        `Knowledge Base Ordner nicht gefunden: ${knowledgeBasePath}`,
+        `Knowledge Base Ordner nicht gefunden: ${knowledgeBasePath}`
       );
       return { indexed: 0, skipped: 0, errors: 0 };
     }
@@ -122,17 +121,37 @@ export async function indexKnowledgeBase(
     // Lade existierenden Index (für zukünftige Verwendung)
     await vectorStore.loadIndex();
 
-    // Lese alle Dateien
-    const files = await readdir(knowledgeBasePath, { recursive: true });
-    console.log(`Gefundene Dateien im Knowledge Base Ordner: ${files.length}`);
+    // Lese alle Einträge (Dateien und Verzeichnisse)
+    const allEntries = await readdir(knowledgeBasePath, { recursive: true });
+    console.log(
+      `Gefundene Einträge im Knowledge Base Ordner: ${allEntries.length}`,
+      allEntries.map((entry) => entry)
+    );
     console.log(`Ordner: ${knowledgeBasePath}`);
 
-    const supportedFiles = files.filter(
-      (file) => isSupportedFile(file) && !file.startsWith("."),
-    );
+    // Filtere nur Dateien (nicht Verzeichnisse) mit unterstützten Formaten
+    const supportedFiles: string[] = [];
+    for (const entry of allEntries) {
+      const entryPath = join(knowledgeBasePath, entry);
+      try {
+        const stats = await stat(entryPath);
+        // Nur Dateien, keine Verzeichnisse
+        if (
+          stats.isFile() &&
+          isSupportedFile(entry) &&
+          !entry.startsWith(".")
+        ) {
+          supportedFiles.push(entry);
+        }
+      } catch (error) {
+        // Ignoriere Fehler beim Stat-Check (z.B. wenn Datei zwischenzeitlich gelöscht wurde)
+        continue;
+      }
+    }
+
     console.log(
       `Unterstützte Dateien: ${supportedFiles.length}`,
-      supportedFiles,
+      supportedFiles
     );
 
     // Batch-Processing für Embeddings
@@ -209,7 +228,7 @@ export async function indexKnowledgeBase(
     }
 
     console.log(
-      `Indizierung abgeschlossen: ${indexed} Dateien indiziert, ${skipped} übersprungen, ${errors} Fehler`,
+      `Indizierung abgeschlossen: ${indexed} Dateien indiziert, ${skipped} übersprungen, ${errors} Fehler`
     );
 
     return { indexed, skipped, errors };
@@ -224,13 +243,13 @@ export async function indexKnowledgeBase(
  */
 export async function searchRelevantChunks(
   query: string,
-  topK: number = RAG_CONFIG.topK,
+  topK: number = RAG_CONFIG.topK
 ): Promise<Array<{ chunk: Chunk; score: number }>> {
   const vectorStore = new FileVectorStore();
 
   try {
     console.log("🔍 Suche nach relevanten Chunks für Query:", query);
-    
+
     // Generiere Embedding für Query
     const queryEmbedding = await getEmbedding(query);
     console.log("📊 Query Embedding generiert, Länge:", queryEmbedding.length);
@@ -246,24 +265,24 @@ export async function searchRelevantChunks(
       console.warn("⚠️ Keine Chunks im Index gefunden");
       return [];
     }
-    
+
     const chunksWithEmbeddings = index.chunks.filter(
-      (c) => c.embedding && c.embedding.length > 0,
+      (c) => c.embedding && c.embedding.length > 0
     );
     console.log(
-      `📚 Index: ${index.chunks.length} Chunks total, ${chunksWithEmbeddings.length} mit Embeddings`,
+      `📚 Index: ${index.chunks.length} Chunks total, ${chunksWithEmbeddings.length} mit Embeddings`
     );
-    
+
     if (chunksWithEmbeddings.length > 0) {
       // Prüfe Embedding-Dimensionen
       const firstChunkEmbedding = chunksWithEmbeddings[0].embedding!;
       console.log(
-        `📏 Embedding-Dimensionen: Query=${queryEmbedding.length}, Chunk=${firstChunkEmbedding.length}`,
+        `📏 Embedding-Dimensionen: Query=${queryEmbedding.length}, Chunk=${firstChunkEmbedding.length}`
       );
-      
+
       if (queryEmbedding.length !== firstChunkEmbedding.length) {
         console.error(
-          `❌ Embedding-Dimensionen stimmen nicht überein! Query: ${queryEmbedding.length}, Chunk: ${firstChunkEmbedding.length}`,
+          `❌ Embedding-Dimensionen stimmen nicht überein! Query: ${queryEmbedding.length}, Chunk: ${firstChunkEmbedding.length}`
         );
       }
     }
@@ -275,7 +294,7 @@ export async function searchRelevantChunks(
     });
 
     console.log(
-      `✅ Suche abgeschlossen: ${results.length} Ergebnisse gefunden (minSimilarity: ${RAG_CONFIG.minSimilarity})`,
+      `✅ Suche abgeschlossen: ${results.length} Ergebnisse gefunden (minSimilarity: ${RAG_CONFIG.minSimilarity})`
     );
     if (results.length > 0) {
       console.log(
@@ -283,13 +302,13 @@ export async function searchRelevantChunks(
         results.map((r) => ({
           source: r.chunk.source,
           score: r.score.toFixed(4),
-        })),
+        }))
       );
     } else {
       console.log(
         "💡 Tipp: Versuche minSimilarity zu senken (aktuell:",
         RAG_CONFIG.minSimilarity,
-        ")",
+        ")"
       );
     }
 
@@ -304,13 +323,16 @@ export async function searchRelevantChunks(
  * Lädt relevanten Kontext basierend auf User-Query
  */
 export async function loadRelevantContext(
-  userQuery: string,
+  userQuery: string
 ): Promise<RelevantContext> {
   try {
     // Search relevant chunks
     const results = await searchRelevantChunks(userQuery);
     console.log("=========================================");
-    console.log("searchRelevantChunks Results:", results);
+    console.log(
+      "searchRelevantChunks Results:",
+      results.map((r) => r.chunk.id)
+    );
     console.log("=========================================");
     if (results.length === 0) {
       return {
@@ -353,7 +375,9 @@ export async function loadRelevantContext(
       chunks.forEach((chunkText, idx) => {
         const source = sources[idx];
         contextParts.push(
-          `\n### ${source.file} (Chunk ${source.chunkIndex}, Relevanz: ${source.score.toFixed(2)})\n\n${chunkText}\n`,
+          `\n### ${source.file} (Chunk ${
+            source.chunkIndex
+          }, Relevanz: ${source.score.toFixed(2)})\n\n${chunkText}\n`
         );
       });
     }
@@ -381,7 +405,7 @@ let indexingPromise: Promise<{
 }> | null = null;
 
 export async function initializeKnowledgeBase(
-  forceReindex: boolean = false,
+  forceReindex: boolean = false
 ): Promise<void> {
   // Verhindere parallele Indizierung
   if (indexingPromise) {

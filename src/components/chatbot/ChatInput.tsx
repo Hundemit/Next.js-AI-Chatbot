@@ -72,6 +72,7 @@ export const ChatInput = memo(function ChatInput() {
               </PromptInputModelSelectContent>
             </PromptInputModelSelect>
           </PromptInputTools>
+
           <PromptInputSubmit
             disabled={!input.trim() && !isChatInProgress}
             isInput={input.trim() ? true : false}

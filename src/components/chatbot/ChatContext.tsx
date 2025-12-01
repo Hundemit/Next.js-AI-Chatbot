@@ -24,6 +24,7 @@ import { MODELS, DEFAULT_MODEL_ID, TYPEWRITER_SPEED } from "@/lib/constants";
 import type { Model, Suggestion } from "@/lib/types";
 
 interface ChatContextType {
+  messageisFinished: boolean;
   isChatbotTyping: boolean;
   setIsChatbotTyping: (isChatbotTyping: boolean) => void;
   messages: UIMessage[];
@@ -69,6 +70,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
   const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL_ID);
   const [input, setInput] = useState("");
   const [chatIsStopped, setChatIsStopped] = useState(false);
+  const [messageisFinished, setMessageisFinished] = useState(false);
 
   // Create initial message
   const initialMessage: UIMessage = useMemo(
@@ -228,6 +230,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
   }, []);
 
   const value: ChatContextType = {
+    messageisFinished,
     isChatbotTyping,
     setIsChatbotTyping,
     messages,

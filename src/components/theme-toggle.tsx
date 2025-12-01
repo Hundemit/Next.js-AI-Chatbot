@@ -4,15 +4,16 @@ import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
-export function ThemeToggle() {
+export function ThemeToggle({ className }: { className?: string }) {
   const { theme, setTheme } = useTheme();
 
   return (
     <Button
       variant="outline"
       size="icon"
-      className="size-9 rounded-full"
+      className={cn("size-9 rounded-lg", className)}
       onClick={() => setTheme(theme === "light" ? "dark" : "light")}
     >
       <Sun className="size-4 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />

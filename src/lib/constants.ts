@@ -35,4 +35,4 @@ export const ASSISTANT_AVATAR_URL = "/logo.png";
  * Set to 0 to disable the typewriter effect (show text immediately).
  * Example: 20 = 20ms per character (50 characters per second)
  */
-export const TYPEWRITER_SPEED = 20; // 0 = disabled, 20 = fast, 50 = medium, 100 = slow
+export const TYPEWRITER_SPEED = 0; // 0 = disabled, 20 = fast, 50 = medium, 100 = slow
