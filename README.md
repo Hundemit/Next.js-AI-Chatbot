@@ -1,4 +1,4 @@
-# 🤖 Hindemit AI - Next.js Chatbot
+# 🤖 Next.js Chatbot
 
 <div align="center">
 
@@ -7,97 +7,26 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org)
 [![Vercel AI SDK](https://img.shields.io/badge/AI%20SDK-Vercel-000000?style=for-the-badge)](https://sdk.vercel.ai)
 
-Ein moderner, vollständig funktionsfähiger Chatbot mit Next.js, React und der Vercel AI SDK. Unterstützt mehrere AI-Modelle über OpenRouter, Streaming Responses, intelligente Suggestions und ein RAG-System.
-
-[Features](#-features) • [Installation](#-getting-started) • [Dokumentation](./LANDING.md) • [Tech Stack](#-tech-stack)
+A modern, full-featured chatbot built with Next.js, React, and the Vercel AI SDK, designed for easy integration into your Next.js projects.
 
 </div>
 
 ---
 
-## 📋 Über das Projekt
+## ℹ️ About the Project
 
-**Hindemit AI** ist ein produktionsreifer Chatbot, der auf Next.js 16 (App Router), React 19 und TypeScript aufbaut. Der Chatbot nutzt die Vercel AI SDK in Kombination mit OpenRouter, um eine flexible und skalierbare Lösung für KI-gestützte Konversationen zu bieten.
-
-Der Chatbot bietet eine vollständige Chat-Erfahrung mit Streaming Responses, intelligenten Suggestions, einem RAG-System zur Integration von Dokumenten und einer modernen, responsiven UI mit vielen Komponenten von shadcn-io.
-
-### ✨ Was macht es besonders?
-
-- 🎯 **Flexible Model-Auswahl**: Wechsel zwischen verschiedenen AI-Modellen (Gemini, GPT, Grok) über OpenRouter - ohne Code-Änderungen
-- ⚡ **Streaming Responses**: Nahtlose, in Echtzeit generierte Antworten für eine flüssige Benutzererfahrung
-- 🧠 **Intelligente Suggestions**: Initiale und dynamisch generierte Folgefragen für bessere Interaktion
-- 📚 **RAG-System**: Integration von Dokumenten ohne externe Vector-Datenbank
-- 🎨 **Moderne UI**: Professionelles Design mit shadcn-io Komponenten
-- 📝 **Markdown + LaTeX**: Vollständige Unterstützung für Code-Blöcke, Mathematik und mehr
+This Next.js Chatbot, built with React and the Vercel AI SDK, is designed for seamless integration into existing Next.js projects. It offers a robust foundation for AI-powered conversations, featuring flexible model selection via OpenRouter, real-time streaming responses, intelligent suggestions, and an optional Retrieval-Augmented Generation (RAG) system for document integration.
 
 ---
 
-## 🎯 Features
+## ✨ Features
 
-### 🔄 Flexible Model-Auswahl
-
-Modelle können einfach und schnell über OpenRouter-Anbindung getauscht werden. Unterstützt werden verschiedene Modelle wie:
-
-- **Google Gemini 2.5 Flash** (Standard)
-- **OpenAI GPT-5 Nano**
-- **xAI Grok 4.1 Fast**
-
-### ⚡ Streaming Responses
-
-Alle Chat-Antworten werden als Stream geliefert, was eine flüssige Benutzererfahrung ermöglicht. Die Implementierung nutzt die `streamText` Funktion der Vercel AI SDK.
-
-### 🧠 Intelligente Suggestions
-
-- **Initial Suggestions**: Beim Start geladene Suggestions aus einer JSON-Datei
-- **Dynamic Suggestions**: Automatisch generierte 3-5 relevante Folgefragen nach jeder Assistenten-Antwort
-
-### 📚 RAG-System (Retrieval-Augmented Generation)
-
-Der Chatbot nutzt ein internes RAG-System, um relevante Informationen aus einer Knowledge Base zu laden und in die Konversation zu integrieren. Dies ermöglicht es dem Chatbot, auf spezifische Dokumente zu antworten, ohne externe Vector-Datenbanken zu benötigen.
-
-**Wie es funktioniert:**
-
-1.  **Dokumente hinzufügen**: Lege `.md`, `.txt`, `.pdf`, `.docx`, `.json` oder `.csv` Dateien in `src/data/knowledge-base/` ab.
-2.  **Indexierung**: Beim ersten Start des Development Servers oder nach einem expliziten Re-Indexing werden diese Dokumente geparst, in kleinere "Chunks" unterteilt und als "Embeddings" (numerische Vektorrepräsentationen) in einem lokalen Vector Store gespeichert.
-3.  **Suche**: Wenn ein Benutzer eine Frage stellt, wird diese Frage ebenfalls in ein Embedding umgewandelt. Das System sucht dann im Vector Store nach den relevantesten Dokument-Chunks (basierend auf der Ähnlichkeit der Embeddings).
-4.  **Kontextintegration**: Die gefundenen relevanten Chunks werden zusammen mit dem System-Prompt an das AI-Modell gesendet, um eine präzisere und kontextbezogenere Antwort zu generieren.
-
-**Konfiguration:**
-
-Die RAG-Konfiguration kann in [`src/lib/rag/config.ts`](src/lib/rag/config.ts) angepasst werden, einschließlich des Pfads zur Knowledge Base, unterstützter Dateiformate, Chunk-Größen und Ähnlichkeitsschwellenwerte.
-
-**Re-Indexing:**
-
-Nachdem du Dokumente in `src/data/knowledge-base/` hinzugefügt, geändert oder gelöscht hast, musst du ein Re-Indexing auslösen, damit die Änderungen wirksam werden. Dies kann manuell über den `/api/rag/reindex` API-Endpunkt erfolgen:
-
-```bash
-curl -X POST http://localhost:3000/api/rag/reindex
-# Um ein vollständiges Re-Indexing zu erzwingen (löscht und erstellt den Index neu):
-curl -X POST -H "Content-Type: application/json" -d '{"force": true}' http://localhost:3000/api/rag/reindex
-```
-
-### 📝 Markdown & Content Rendering
-
-- **Markdown**: Vollständige Unterstützung mit GitHub Flavored Markdown
-- **Syntax-Highlighting**: Code-Blöcke mit Shiki
-- **LaTeX/Math**: Mathematische Formeln mit KaTeX
-- **Tabellen & Lists**: GFM Features für erweiterte Formatierung
-
-### 🎨 Moderne UI
-
-Viele Komponenten wurden von **shadcn-io** verwendet:
-
-- Conversation-Komponenten für die Chat-Ansicht
-- Message-Komponenten mit Avatar-Support
-- Prompt-Input mit integrierter Toolbar
-- Responsive Design für Desktop und Mobile
-
-### 🔄 Real-time Chat-Interface
-
-- Persistente Konversationshistorie während der Session
-- Auto-Scroll zu neuen Nachrichten
-- Loading States mit visuellem Feedback
-- Reset-Funktionalität für neue Konversationen
+- **Flexible Model Selection**: Easily switch between various AI models (Gemini, GPT, Grok) via OpenRouter without code changes.
+- **Streaming Responses**: Real-time, fluid user experience with streamed AI answers using the Vercel AI SDK.
+- **Intelligent Suggestions**: Both initial and dynamically generated follow-up questions enhance user interaction.
+- **RAG System (Optional)**: Integrate your documents (Markdown, TXT, PDF, DOCX, JSON, CSV) to provide context-aware responses without external vector databases.
+- **Markdown & Content Rendering**: Full support for GitHub Flavored Markdown, syntax highlighting with Shiki, and LaTeX math rendering with KaTeX.
+- **Modern UI**: Built with a responsive design and components based on `shadcn/ui` and Radix UI primitives.
 
 ---
 
@@ -105,20 +34,20 @@ Viele Komponenten wurden von **shadcn-io** verwendet:
 
 ### Frontend
 
-- **[Next.js 16](https://nextjs.org)** - React Framework mit App Router
+- **[Next.js 16](https://nextjs.org)** - React Framework with App Router
 - **[React 19](https://react.dev)** - UI Library
-- **[TypeScript](https://www.typescriptlang.org)** - Type Safety
+- **[TypeScript 5.0](https://www.typescriptlang.org)** - Type Safety
 
 ### AI & Backend
 
-- **[Vercel AI SDK](https://sdk.vercel.ai)** - AI Abstraktion (`@ai-sdk/react`, `ai`)
-- **[OpenRouter](https://openrouter.ai)** - Flexible Model-Auswahl (`@openrouter/ai-sdk-provider`)
+- **[Vercel AI SDK](https://sdk.vercel.ai)** - AI Abstraction (`@ai-sdk/react`, `ai`)
+- **[OpenRouter](https://openrouter.ai)** - Flexible Model Selection (`@openrouter/ai-sdk-provider`)
 
 ### UI & Styling
 
 - **[Tailwind CSS](https://tailwindcss.com)** - Utility-First CSS Framework
-- **[shadcn/ui](https://ui.shadcn.com)** - Viele Komponenten von shadcn-io
-- **[Radix UI](https://www.radix-ui.com)** - Zugängliche UI Primitives
+- **[shadcn/ui](https://ui.shadcn.com)** - UI Components
+- **[Radix UI](https://www.radix-ui.com)** - Accessible UI Primitives
 
 ### Markdown & Content
 
@@ -133,293 +62,227 @@ Viele Komponenten wurden von **shadcn-io** verwendet:
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Quick Start
 
-### Voraussetzungen
+This guide will help you integrate the Next.js Chatbot into your existing Next.js project.
 
-- **Node.js** 18+ oder 20+
-- **npm**, **pnpm**, **yarn** oder **bun**
-- **OpenRouter API Key** ([Hier anmelden](https://openrouter.ai))
+### 1. Prerequisites
 
-### Installation
+Before you begin, ensure you have the following:
 
-1. **Repository klonen**
+- **Node.js**: Version 18+ or 20+
+- **Next.js Project**: An existing Next.js project (version 15+ recommended) using the App Router.
+- **OpenRouter API Key**: Obtain one from [OpenRouter.ai](https://openrouter.ai).
 
-   ```bash
-   git clone https://github.com/yourusername/nextjs-chatbot.git
-   cd nextjs-chatbot
-   ```
+### 2. Install Dependencies
 
-2. **Abhängigkeiten installieren**
-
-   ```bash
-   npm install
-   # oder
-   pnpm install
-   # oder
-   yarn install
-   ```
-
-3. **Umgebungsvariablen konfigurieren**
-
-   Erstelle eine `.env.local` Datei im Root-Verzeichnis:
-
-   ```env
-   OPENROUTER_API_KEY=your_api_key_here
-   ```
-
-   > **Hinweis**: Erhalte deinen API Key auf [OpenRouter](https://openrouter.ai)
-
-4. **Knowledge Base initialisieren (optional, aber empfohlen)**
-
-   Beim ersten Start des Development Servers wird die Knowledge Base automatisch indiziert. Du kannst den Index auch manuell über einen API-Endpunkt aktualisieren:
-
-   ```bash
-   curl -X POST http://localhost:3000/api/rag/reindex
-   # Oder um ein vollständiges Re-Indexing zu erzwingen:
-   curl -X POST -H "Content-Type: application/json" -d '{"force": true}' http://localhost:3000/api/rag/reindex
-   ```
-
-   > **Hinweis**: Das Re-Indexing ist notwendig, wenn du neue Dokumente hinzufügst, bestehende änderst oder löschst.
-
-5. **Development Server starten**
-
-   ```bash
-   npm run dev
-   # oder
-   pnpm dev
-   # oder
-   yarn dev
-   ```
-
-6. **Öffne [http://localhost:3000](http://localhost:3000)** in deinem Browser
-
-### Production Build
+Install all required packages with a single command:
 
 ```bash
-npm run build
-npm start
+pnpm install @ai-sdk/react @icons-pack/react-simple-icons @next/mdx @openrouter/ai-sdk-provider @radix-ui/react-accordion @radix-ui/react-avatar @radix-ui/react-checkbox @radix-ui/react-collapsible @radix-ui/react-hover-card @radix-ui/react-label @radix-ui/react-navigation-menu @radix-ui/react-scroll-area @radix-ui/react-select @radix-ui/react-slot @radix-ui/react-switch @radix-ui/react-tooltip @radix-ui/react-use-controllable-state @shikijs/transformers @styleglide/kit-view-provider @tailwindcss/typography ai class-variance-authority clsx copy-to-clipboard embla-carousel-react harden-react-markdown katex lucide-react motion nanoid next-safe-action react-fast-marquee react-markdown react-syntax-highlighter rehype-katex remark-gfm remark-math shiki tailwind-merge tailwind-scrollbar-hide use-stick-to-bottom
 ```
 
----
+**Optional RAG dependencies** (only if you plan to use the RAG system):
 
-## ⚙️ Konfiguration
+```bash
+pnpm install js-tiktoken mammoth pdf2json
+```
 
-### Model-Auswahl anpassen
+### 3. Copy Files to Your Project
 
-Die verfügbaren AI-Modelle und der Standardmodell können in [`src/lib/constants.ts`](src/lib/constants.ts) angepasst werden. Die hier definierten Modelle werden im Dropdown des Chatbots angezeigt.
+Copy the following directories and files into your `src/` directory:
+
+```
+src/
+├── app/
+│ └── api/
+│ ├── chat/route.ts # REQUIRED - Main chat completion API
+│ ├── suggestions/route.ts # REQUIRED - Dynamic suggestion API
+│ └── rag/reindex/route.ts # OPTIONAL - RAG re-indexing endpoint
+├── components/
+│ ├── chatbot/ # REQUIRED - All core Chatbot components
+│ │ ├── Chatbot.tsx
+│ │ ├── ChatContext.tsx
+│ │ ├── ChatHeader.tsx
+│ │ ├── ChatInput.tsx
+│ │ ├── ChatMessages.tsx
+│ │ ├── ChatSuggestions.tsx
+│ │ ├── index.ts # Export file for Chatbot components
+│ │ └── TypewriterText.tsx
+│ ├── ui/ # REQUIRED - Reusable UI components (shadcn/ui based)
+│ │ ├── accordion.tsx
+│ │ ├── avatar.tsx
+│ │ ├── badge.tsx
+│ │ ├── blur-fade.tsx
+│ │ ├── button.tsx
+│ │ ├── card.tsx
+│ │ ├── carousel.tsx
+│ │ ├── checkbox.tsx
+│ │ ├── collapsible.tsx
+│ │ ├── form.tsx
+│ │ ├── hover-card.tsx
+│ │ ├── input.tsx
+│ │ ├── label.tsx
+│ │ ├── navigation-menu.tsx
+│ │ ├── scroll-area.tsx
+│ │ ├── select.tsx
+│ │ ├── shadcn-io/ai/ # Specific AI UI components
+│ │ │ ├── actions.tsx
+│ │ │ ├── branch.tsx
+│ │ │ ├── code-block.tsx
+│ │ │ ├── conversation.tsx
+│ │ │ ├── image.tsx
+│ │ │ ├── inline-citation.tsx
+│ │ │ ├── loader.tsx
+│ │ │ ├── message.tsx
+│ │ │ ├── prompt-input.tsx
+│ │ │ ├── reasoning.tsx
+│ │ │ ├── response.tsx
+│ │ │ ├── source.tsx
+│ │ │ ├── suggestion.tsx
+│ │ │ ├── task.tsx
+│ │ │ └── web-preview.tsx
+│ │ ├── shadcn-io/code-block/ # Code block components (for markdown rendering)
+│ │ │ ├── index.tsx
+│ │ │ └── server.tsx
+│ │ ├── skeleton.tsx
+│ │ ├── switch.tsx
+│ │ ├── textarea.tsx
+│ │ └── tooltip.tsx
+│ └── status-badges.tsx # REQUIRED (if using status badges in ChatMessages)
+├── data/
+│ ├── knowledge-base/ # OPTIONAL - Documents for RAG
+│ │ ├── company-data.md
+│ │ ├── customer-policies.md
+│ │ └── ...
+│ └── system-messages/ # REQUIRED - AI prompts and initial suggestions
+│ ├── initial-information.ts
+│ ├── suggestion-prompt.txt
+│ └── system-prompt.txt
+├── hooks/
+│ └── useSuggestions.ts # REQUIRED - Custom hook for dynamic suggestions
+└── lib/
+├── chatUtils.ts # REQUIRED - Chat utility functions
+├── constants.ts # REQUIRED - General configuration (models, avatars, etc.)
+├── form-schema.ts # REQUIRED (if using form validation)
+├── loadDocuments.ts # REQUIRED - Functions to load prompts and RAG documents
+├── rag/ # OPTIONAL - RAG system logic
+│ ├── chunker.ts
+│ ├── config.ts
+│ ├── index.ts
+│ ├── parsers.ts
+│ ├── types.ts
+│ └── vectorStore.ts
+├── types.ts # REQUIRED - Shared TypeScript types
+└── utils.ts # REQUIRED - Utility functions (e.g., cn for Tailwind)
+```
+
+### 4. Configuration
+
+**A) Environment Variables (`.env.local`)**
+
+Create a `.env.local` file in your project root and add your OpenRouter API key:
+
+```env
+OPENROUTER_API_KEY=your_api_key_here
+```
+
+**B) General Constants (`src/lib/constants.ts`)**
+
+Adjust the following constants to fit your needs:
 
 ```typescript
+// ... existing code ...
 export const MODELS: Model[] = [
   { id: "google/gemini-2.5-flash-lite", name: "Gemini 2.5 Flash" },
   { id: "openai/gpt-5-nano", name: "GPT-5 Nano" },
   { id: "x-ai/grok-4.1-fast", name: "Grok 4.1 Fast" },
-  // Füge hier neue Modelle hinzu (siehe OpenRouter-Dokumentation für IDs)
+  // Add new models here (refer to OpenRouter documentation for IDs)
 ];
 
 export const DEFAULT_MODEL_ID = MODELS[0].id;
+
+export const CHATBOT_TITLE = "Your Chatbot Title"; // Displayed in the header
+export const USER_AVATAR_URL = "your_user_avatar_url.png";
+export const ASSISTANT_AVATAR_URL = "your_assistant_avatar_url.png";
+
+export const TYPEWRITER_SPEED = 0; // 0 = disabled, 20 = fast, 50 = medium, 100 = slow
+// ... existing code ...
 ```
 
-### System-Prompts anpassen
+**C) System Prompts (`src/data/system-messages/`)**
 
-Die Verhaltensweisen des Chatbots können über System-Prompts gesteuert werden:
+Fill these files with your content:
 
-- **Haupt-System-Prompt**: [`src/data/system-messages/system-prompt.txt`](src/data/system-messages/system-prompt.txt)
-- **Suggestion-Prompt**: [`src/data/system-messages/suggestion-prompt.txt`](src/data/system-messages/suggestion-prompt.txt)
+- **`system-prompt.txt`**: The main system prompt guiding the assistant's behavior.
+- **`suggestion-prompt.txt`**: A specific prompt used to generate follow-up questions.
+- **`initial-information.ts`**: Defines the initial greeting message and suggestions shown when the chatbot starts.
 
-### Dokumente für RAG hinzufügen
+**D) RAG Configuration (`src/lib/rag/config.ts`) (Optional)**
 
-Füge `.md`, `.txt`, `.pdf`, `.docx`, `.json` oder `.csv` Dateien zu [`src/data/knowledge-base/`](src/data/knowledge-base/) hinzu. Diese Dokumente werden automatisch vom RAG-System indiziert (nach einem Re-Indexing).
-
-**Beispiel:**
-
-```
-src/data/knowledge-base/
-├── company-data.md
-├── customer-policies.md
-├── new-product-docs.md      # Neu hinzufügen
-└── support-faq.txt          # Neu hinzufügen
-```
-
-### Initiale Suggestions anpassen
-
-Die initialen Gesprächsvorschläge, die beim Start des Chatbots angezeigt werden, können in [`src/data/system-messages/initial-information.ts`](src/data/system-messages/initial-information.ts) angepasst werden:
+If you plan to use the RAG system, configure it in `src/lib/rag/config.ts`:
 
 ```typescript
-export const INITIAL_SUGGESTIONS = [
-  "Wie kannst du mir helfen?",
-  "Was sind deine Funktionen?",
-  "Erzähle mir mehr über dich.",
-];
-```
-
-### RAG-System Konfiguration
-
-Erweiterte Einstellungen für das RAG-System (Chunking, Embedding, Ähnlichkeitsschwellenwert etc.) findest du in [`src/lib/rag/config.ts`](src/lib/rag/config.ts):
-
-```typescript
+// ... existing code ...
 export const RAG_CONFIG = {
   knowledgeBasePath: join(process.cwd(), "src", "data", "knowledge-base"),
   supportedFormats: [".pdf", ".docx", ".txt", ".md", ".json", ".csv"],
-  chunkTokens: 256, // Maximale Token pro Chunk
-  chunkOverlapTokens: 32, // Überlappung zwischen Chunks
-  topK: 5, // Anzahl der Top-Chunks, die für den Kontext geladen werden
-  minSimilarity: 0.3, // Minimale Kosinus-Ähnlichkeit für relevante Chunks
-  // ... weitere Einstellungen
+  chunkTokens: 512, // Maximum tokens per chunk
+  chunkOverlapTokens: 32, // Overlap between chunks
+  topK: 20, // Number of top-k chunks to retrieve for context
+  minSimilarity: 0.3, // Minimum cosine similarity for relevant chunks (0.0-1.0, lower = more results)
+  cachePath: process.env.VERCEL // Cache location for the RAG index
+    ? "/tmp/rag-index.json"
+    : join(process.cwd(), ".next", "cache", "rag-index.json"),
+  embeddingBatchSize: 16,
+  maxFileSizeMB: 50,
+  enableOCR: false,
+  piiRedaction: false,
+  vectorStore: "file" as const, // 'file' | 'faiss' | 'sqlite'
 };
+// ... existing code ...
 ```
 
----
+You can also add your documents to `src/data/knowledge-base/`. After adding or modifying documents, you need to reindex them by making a POST request to `/api/rag/reindex`.
 
-## 📁 Projektstruktur
-
-```
-nextjs-chatbot/
-├── src/
-│   ├── app/                    # Next.js App Router
-│   │   ├── api/                # API Routes
-│   │   │   ├── chat/           # Chat Completion Endpoint
-│   │   │   ├── suggestions/    # Dynamic & Initial Suggestions Endpoint
-│   │   │   └── rag/reindex/    # RAG Re-Indexing Endpoint
-│   │   ├── layout.tsx
-│   │   └── page.tsx
-│   ├── components/             # React Components
-│   │   ├── chatbot/            # Chatbot Components
-│   │   └── ui/                 # UI Components (shadcn-io)
-│   ├── hooks/                  # Custom React Hooks
-│   ├── lib/                    # Utilities & Helpers
-│   └── data/                   # Data Files
-│       ├── knowledge-base/     # Knowledge Base Documents
-│       └── system-messages/    # Prompts & Initial Suggestions
-├── public/                     # Static Assets
-├── LANDING.md                  # Detaillierte Dokumentation
-└── README.md                   # Diese Datei
+```bash
+curl -X POST http://localhost:3000/api/rag/reindex
+# To force a complete re-indexing (deletes and recreates the index):
+curl -X POST -H "Content-Type: application/json" -d '{"force": true}' http://localhost:3000/api/rag/reindex
 ```
 
-> 📖 Für eine detaillierte Beschreibung der Architektur siehe [LANDING.md](./LANDING.md)
+### 5. Integration Example
+
+To integrate the chatbot into your page, import the `Chatbot` component and render it. For example, in `src/app/page.tsx`:
+
+```typescript
+"use client";
+
+import { Chatbot } from "@/components/chatbot";
+import { ThemeProvider } from "@/components/theme-provider";
+
+export default function Home() {
+  return (
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <main className="flex min-h-screen flex-col items-center justify-between p-24">
+        <Chatbot />
+      </main>
+    </ThemeProvider>
+  );
+}
+```
+
+### 6. Troubleshooting
+
+- **`OPENROUTER_API_KEY is not set`**: Ensure `OPENROUTER_API_KEY` is correctly set in your `.env.local` file.
+- **RAG Issues (documents not found)**: Manually trigger a re-indexing via `curl -X POST http://localhost:3000/api/rag/reindex` after adding or modifying documents in `src/data/knowledge-base/`.
+- **Model not responding**: Check your internet connection and verify that the selected model is available on OpenRouter.
 
 ---
 
-## 💻 Verwendung
+## 🔗 Links & Resources
 
-Dieser Chatbot ist auf einfache Integration und Erweiterbarkeit ausgelegt. Hier sind die grundlegenden Interaktionen und Anpassungsmöglichkeiten für Entwickler.
-
-### Quick-Start für Entwickler
-
-1.  **Klonen & Installieren**: Hol dir das Projekt und installiere die Abhängigkeiten.
-    ```bash
-    git clone https://github.com/yourusername/nextjs-chatbot.git
-    cd nextjs-chatbot
-    pnpm install # oder npm install / yarn install
-    ```
-2.  **API Key**: Füge deinen `OPENROUTER_API_KEY` in `.env.local` ein.
-3.  **Starten**: Starte den Development Server.
-    ```bash
-    pnpm dev # oder npm run dev / yarn dev
-    ```
-4.  **Anpassen**: Bearbeite [`src/lib/constants.ts`](src/lib/constants.ts) für Modelle, [`src/data/system-messages/system-prompt.txt`](src/data/system-messages/system-prompt.txt) für Prompts und [`src/data/knowledge-base/`](src/data/knowledge-base/) für eigene Dokumente.
-
-### Basis-Interaktion
-
-1.  **Nachricht eingeben**: Tippe deine Frage in das Eingabefeld.
-2.  **Model auswählen**: Wähle ein AI-Modell aus dem Dropdown (optional, konfiguriert in [`src/lib/constants.ts`](src/lib/constants.ts)).
-3.  **Absenden**: Klicke auf den Submit-Button oder drücke Enter.
-4.  **Antwort erhalten**: Sieh zu, wie die Antwort in Echtzeit gestreamt wird.
-
-### Suggestions nutzen
-
-- **Initial Suggestions**: Klicke auf eine der vorgeschlagenen Fragen beim Start (konfiguriert in [`src/data/system-messages/initial-information.ts`](src/data/system-messages/initial-information.ts)).
-- **Dynamic Suggestions**: Nach jeder Assistenten-Antwort werden relevante Folgefragen angezeigt (generiert über `/api/suggestions`).
-
-### Konversation zurücksetzen
-
-Klicke auf den **Reset**-Button im Header, um die Konversation zu löschen und neu zu starten.
-
-### Troubleshooting
-
-- **`OPENROUTER_API_KEY is not set`**: Stelle sicher, dass `OPENROUTER_API_KEY` in deiner `.env.local` Datei korrekt gesetzt ist.
-- **RAG-Probleme (Dokumente werden nicht gefunden)**: Führe ein manuelles Re-Indexing über `curl -X POST http://localhost:3000/api/rag/reindex` aus, nachdem du Dokumente hinzugefügt oder geändert hast.
-- **Modell reagiert nicht**: Überprüfe deine Internetverbindung und stelle sicher, dass das ausgewählte Modell auf OpenRouter verfügbar ist.
-
----
-
-## 📚 Weitere Dokumentation
-
-Für detaillierte technische Dokumentation, Architektur-Übersicht, API-Dokumentation und Entwickler-Informationen siehe:
-
-**[📖 LANDING.md](./LANDING.md)** - Vollständige technische Dokumentation
-
-Die LANDING.md enthält:
-
-- Detaillierte Architektur-Beschreibung
-- Komplette API-Dokumentation
-- Komponenten-Dokumentation
-- Hooks & Utilities
-- Erweiterungsmöglichkeiten
-- Best Practices
-
----
-
-## 🤝 Contributing
-
-Beiträge sind willkommen! Hier sind einige Möglichkeiten, wie du helfen kannst:
-
-### Issues melden
-
-1. Prüfe, ob das Issue bereits existiert
-2. Erstelle ein neues Issue mit:
-   - Klarer Beschreibung des Problems
-   - Steps to Reproduce
-   - Erwartetes Verhalten
-   - Screenshots (falls relevant)
-
-### Pull Requests
-
-1. **Fork** das Repository
-2. Erstelle einen **Feature Branch** (`git checkout -b feature/AmazingFeature`)
-3. **Commit** deine Änderungen (`git commit -m 'Add some AmazingFeature'`)
-4. **Push** zum Branch (`git push origin feature/AmazingFeature`)
-5. Öffne einen **Pull Request**
-
-### Code-Standards
-
-- Verwende TypeScript für alle neuen Dateien
-- Folge den bestehenden Code-Konventionen
-- Teste deine Änderungen lokal
-- Aktualisiere die Dokumentation wenn nötig
-
----
-
-## 📝 License
-
-Dieses Projekt ist unter der MIT License lizenziert - siehe die [LICENSE](LICENSE) Datei für Details.
-
----
-
-## 🔗 Links & Ressourcen
-
-- **Repository**: [GitHub](https://github.com/yourusername/nextjs-chatbot)
-- **Issues**: [GitHub Issues](https://github.com/yourusername/nextjs-chatbot/issues)
 - **OpenRouter**: [OpenRouter.ai](https://openrouter.ai)
 - **Vercel AI SDK**: [sdk.vercel.ai](https://sdk.vercel.ai)
-- **Next.js Dokumentation**: [nextjs.org/docs](https://nextjs.org/docs)
+- **Next.js Documentation**: [nextjs.org/docs](https://nextjs.org/docs)
 - **shadcn/ui**: [ui.shadcn.com](https://ui.shadcn.com)
-
----
-
-## 🙏 Danksagungen
-
-- [Vercel](https://vercel.com) für das AI SDK
-- [OpenRouter](https://openrouter.ai) für die flexible Model-Auswahl
-- [shadcn](https://twitter.com/shadcn) für die großartigen UI-Komponenten
-- Alle Contributors und Nutzer des Projekts
-
----
-
-<div align="center">
-
-**Made with ❤️ using Next.js, React, and TypeScript**
-
-⭐ Star dieses Repository wenn es dir hilft!
-
-</div>

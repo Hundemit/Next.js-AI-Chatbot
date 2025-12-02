@@ -6,11 +6,14 @@ import { join } from "path";
 export const RAG_CONFIG = {
   knowledgeBasePath: join(process.cwd(), "src", "data", "knowledge-base"),
   supportedFormats: [".pdf", ".docx", ".txt", ".md", ".json", ".csv"],
-  chunkTokens: 256, // 512 tokens per chunk
+  chunkTokens: 512, // 512 tokens per chunk
   chunkOverlapTokens: 32,
-  topK: 5,
+  topK: 20,
   minSimilarity: 0.3, // cosine similarity threshold (0.0-1.0, niedriger = mehr Ergebnisse)
-  cachePath: join(process.cwd(), ".next", "cache", "rag-index.json"),
+  // Verwende /tmp auf Vercel (persistent zwischen Requests) oder .next/cache lokal
+  cachePath: process.env.VERCEL
+    ? "/tmp/rag-index.json"
+    : join(process.cwd(), ".next", "cache", "rag-index.json"),
   embeddingBatchSize: 16,
   maxFileSizeMB: 50,
   enableOCR: false, // Phase 2

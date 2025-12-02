@@ -132,10 +132,7 @@ export const ChatMessages = memo(function ChatMessages() {
                         ? USER_AVATAR_URL
                         : ASSISTANT_AVATAR_URL
                     }
-                    className={cn(
-                      "bg-primary p-1",
-                      message.role === "assistant" ? "" : ""
-                    )}
+                    className={cn("bg-stone-100 p-1 hidden sm:block")}
                     name={message.role === "user" ? "User" : "AI"}
                   />
                 </Message>

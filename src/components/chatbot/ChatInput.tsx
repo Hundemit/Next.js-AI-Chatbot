@@ -51,7 +51,7 @@ export const ChatInput = memo(function ChatInput() {
           disabled={isChatInProgress}
           aria-label="Chat input"
         />
-        <PromptInputToolbar>
+        <PromptInputToolbar className="border-none">
           <PromptInputTools>
             <PromptInputModelSelect
               value={selectedModel}
@@ -72,7 +72,6 @@ export const ChatInput = memo(function ChatInput() {
               </PromptInputModelSelectContent>
             </PromptInputModelSelect>
           </PromptInputTools>
-
           <PromptInputSubmit
             disabled={!input.trim() && !isChatInProgress}
             isInput={input.trim() ? true : false}

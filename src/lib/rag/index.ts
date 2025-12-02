@@ -262,7 +262,13 @@ export async function searchRelevantChunks(
     // Lade Index um zu prüfen, ob Chunks vorhanden sind
     const index = await vectorStore.loadIndex();
     if (!index || index.chunks.length === 0) {
-      console.warn("⚠️ Keine Chunks im Index gefunden");
+      console.warn(
+        "⚠️ Keine Chunks im Index gefunden - Index wird im Hintergrund erstellt. Fallback auf Standard-Dokumente wird verwendet."
+      );
+      // Starte Indizierung im Hintergrund (nicht-blockierend)
+      initializeKnowledgeBase().catch((error) => {
+        console.warn("Hintergrund-Indizierung fehlgeschlagen:", error);
+      });
       return [];
     }
 
