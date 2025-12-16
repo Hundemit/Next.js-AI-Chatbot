@@ -35,7 +35,7 @@ interface ChatContextType {
   status: ChatStatus;
   sendMessage: (
     message: { text: string },
-    options?: { body?: Record<string, unknown> }
+    options?: { body?: Record<string, unknown> },
   ) => void;
   stopChat: () => void;
   isChatInProgress: boolean;
@@ -82,7 +82,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
         },
       ],
     }),
-    []
+    [],
   );
 
   const {
@@ -100,7 +100,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
 
   const isChatInProgress = useMemo(
     () => status === "submitted" || status === "streaming" || isChatbotTyping,
-    [status, isChatbotTyping]
+    [status, isChatbotTyping],
   );
 
   // Function to add an error message to the chat
@@ -123,7 +123,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
       // isChatInProgress wird nun über useMemo aktualisiert
       setIsChatbotTyping(false);
     },
-    [setMessages, setIsChatbotTyping]
+    [setMessages, setIsChatbotTyping],
   );
 
   useEffect(() => {
@@ -155,7 +155,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
   // Memoize hasUserMessages calculation
   const hasUserMessagesValue = useMemo(
     () => hasUserMessages(messages),
-    [messages]
+    [messages],
   );
 
   // Memoized handlers with useCallback
@@ -171,12 +171,12 @@ export function ChatProvider({ children }: ChatProviderProps) {
             body: {
               model: selectedModel,
             },
-          }
+          },
         );
         setInput("");
       }
     },
-    [input, selectedModel, sendMessage]
+    [input, selectedModel, sendMessage],
   );
 
   const handleReset = useCallback(() => {
@@ -204,11 +204,11 @@ export function ChatProvider({ children }: ChatProviderProps) {
             body: {
               model: selectedModel,
             },
-          }
+          },
         );
       }
     },
-    [selectedModel, sendMessage, isChatInProgress]
+    [selectedModel, sendMessage, isChatInProgress],
   );
 
   const handleStop = useCallback(() => {

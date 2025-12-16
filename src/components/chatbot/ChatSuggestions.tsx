@@ -8,7 +8,6 @@ import {
   Suggestion,
   Suggestions,
 } from "@/components/ui/shadcn-io/ai/suggestion";
-import { StatusBadges } from "@/components/status-badges";
 
 /**
  * ChatSuggestions component - conditionally renders initial or dynamic suggestions.
@@ -23,8 +22,6 @@ export const ChatSuggestions = memo(function ChatSuggestions() {
     isLoadingSuggestions,
     isChatInProgress,
     stoppedSuggestions,
-    chatIsStopped,
-    isChatbotTyping,
     status,
   } = useChatContext();
 
@@ -104,15 +101,6 @@ export const ChatSuggestions = memo(function ChatSuggestions() {
 
   return (
     <Suggestions className="w-full gap-2 border-t border-dashed p-2">
-      {/* <StatusBadges
-        values={{
-          hasUserMessages,
-          isLoadingSuggestions: isLoadingSuggestions,
-          isChatInProgress: isChatInProgress,
-          isWaitingForSuggestions: isWaitingForSuggestions,
-          stoppedSuggestions: stoppedSuggestions,
-        }}
-      /> */}
       {suggestions.map((suggestion, index) => (
         <Suggestion
           key={suggestion}

@@ -143,7 +143,7 @@ export async function indexKnowledgeBase(
         ) {
           supportedFiles.push(entry);
         }
-      } catch (error) {
+      } catch {
         // Ignoriere Fehler beim Stat-Check (z.B. wenn Datei zwischenzeitlich gelöscht wurde)
         continue;
       }
