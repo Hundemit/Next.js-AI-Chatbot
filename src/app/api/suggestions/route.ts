@@ -13,8 +13,7 @@ const openrouter = createOpenRouter({
 
 export async function POST(req: Request) {
   try {
-    const { messages, model }: { messages: UIMessage[]; model?: string } =
-      await req.json();
+    const { messages }: { messages: UIMessage[] } = await req.json();
 
     if (!process.env.OPENROUTER_API_KEY) {
       return new Response(
@@ -24,7 +23,7 @@ export async function POST(req: Request) {
     }
 
     // Default model if none provided (kann ein schnelleres Modell sein)
-    const selectedModel = model || "google/gemini-2.5-flash-lite";
+    const selectedModel = "google/gemini-2.5-flash-lite";
 
     // Konvertiere Messages für das Modell
     const modelMessages = convertToModelMessages(messages);

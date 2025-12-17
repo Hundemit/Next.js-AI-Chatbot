@@ -113,7 +113,6 @@ export function useSuggestions({
           },
           body: JSON.stringify({
             messages: messages,
-            model: selectedModel,
           }),
           signal: abortController.signal,
         });
@@ -165,7 +164,7 @@ export function useSuggestions({
         abortControllerRef.current = null;
       }
     };
-  }, [messages, status, stopped, selectedModel]);
+  }, [messages, status, stopped]);
 
   return {
     suggestions,
