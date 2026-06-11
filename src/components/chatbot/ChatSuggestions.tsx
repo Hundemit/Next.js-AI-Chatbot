@@ -1,13 +1,17 @@
 "use client";
 
-import { memo, useEffect, useMemo, useState, useRef } from "react";
+import { memo } from "react";
 
-import { useChatContext } from "./ChatContext";
+import { useChatSuggestionsContext } from "./ChatContext";
 
 import {
   Suggestion,
   Suggestions,
 } from "@/components/ui/shadcn-io/ai/suggestion";
+import {
+  getVisibleSuggestions,
+  shouldDisableSuggestions,
+} from "@/lib/suggestions/viewState";
 
 /**
  * ChatSuggestions component - conditionally renders initial or dynamic suggestions.
@@ -21,83 +25,22 @@ export const ChatSuggestions = memo(function ChatSuggestions() {
     handleSuggestionClick,
     isLoadingSuggestions,
     isChatInProgress,
+    isWaitingForSuggestions,
     stoppedSuggestions,
-    status,
-  } = useChatContext();
+  } = useChatSuggestionsContext();
 
-  // Track if we're in the transition period after chat finishes
-  const [isWaitingForSuggestions, setIsWaitingForSuggestions] = useState(false);
-  const previousStatusRef = useRef<typeof status>(status);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const disabled = shouldDisableSuggestions({
+    isLoadingSuggestions,
+    isChatInProgress,
+    isWaitingForSuggestions,
+    stoppedSuggestions,
+  });
 
-  useEffect(() => {
-    // Detect transition from streaming to ready
-    const transitionedToReady =
-      previousStatusRef.current === "streaming" && status === "ready";
-
-    if (transitionedToReady) {
-      // Clear any existing timeout
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-
-      // Set waiting state asynchronously to avoid synchronous setState warning
-      const timeoutId = setTimeout(() => {
-        setIsWaitingForSuggestions(true);
-        // Clear the flag after debounce timeout (500ms) + small buffer
-        timeoutRef.current = setTimeout(() => {
-          setIsWaitingForSuggestions(false);
-          timeoutRef.current = null;
-        }, 600);
-      }, 0);
-      timeoutRef.current = timeoutId;
-    }
-
-    // Clear flag when suggestions start loading
-    if (isLoadingSuggestions) {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
-      }
-      // Set state asynchronously to avoid synchronous setState warning
-      setTimeout(() => {
-        setIsWaitingForSuggestions(false);
-      }, 0);
-    }
-
-    previousStatusRef.current = status;
-
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
-      }
-    };
-  }, [status, isLoadingSuggestions]);
-
-  const disabled = useMemo(
-    () =>
-      (isLoadingSuggestions && !stoppedSuggestions) ||
-      (isChatInProgress && !stoppedSuggestions) ||
-      // Disable during transition period after chat finishes
-      (isWaitingForSuggestions && !stoppedSuggestions),
-    [
-      isLoadingSuggestions,
-      stoppedSuggestions,
-      isChatInProgress,
-      isWaitingForSuggestions,
-    ]
-  );
-
-  // Show dynamic suggestions when user has messages and dynamic suggestions are available
-  const showDynamic = useMemo(() => {
-    return hasUserMessages && dynamicSuggestions.length > 0;
-  }, [hasUserMessages, dynamicSuggestions.length]);
-
-  // Determine which suggestions to display
-  const suggestions = useMemo(() => {
-    return showDynamic ? dynamicSuggestions : initialSuggestions;
-  }, [showDynamic, dynamicSuggestions, initialSuggestions]);
+  const suggestions = getVisibleSuggestions({
+    hasUserMessages,
+    dynamicSuggestions,
+    initialSuggestions,
+  });
 
   return (
     <Suggestions className="w-full gap-2 border-t border-dashed p-2">

@@ -3,7 +3,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { UIMessage } from "@ai-sdk/react";
 import type { ChatStatus } from "ai";
 
-import { extractTextFromMessage, hasUserMessages } from "@/lib/chatUtils";
+import {
+  extractTextFromMessage,
+  getModelRelevantMessages,
+  shouldKeepExistingSuggestionsForMessages,
+  shouldRequestSuggestionsForMessages,
+} from "@/lib/chatUtils";
+import { logger } from "@/lib/logger";
+import { didChatJustBecomeReady } from "@/lib/suggestions/viewState";
 import type { Suggestion } from "@/lib/types";
 
 interface UseSuggestionsParams {
@@ -15,6 +22,7 @@ interface UseSuggestionsParams {
 interface UseSuggestionsReturn {
   suggestions: Suggestion[];
   isLoading: boolean;
+  isWaitingForSuggestions: boolean;
   reset: () => void;
   stop: () => void;
   stopped: boolean;
@@ -37,8 +45,13 @@ export function useSuggestions({
 }: UseSuggestionsParams): UseSuggestionsReturn {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isWaitingForSuggestions, setIsWaitingForSuggestions] = useState(false);
   const [stopped, setStopped] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const previousStatusRef = useRef<ChatStatus>(status);
+  const transitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
 
   const reset = useCallback(() => {
     // Abort any ongoing request
@@ -48,6 +61,7 @@ export function useSuggestions({
     }
     setSuggestions([]);
     setIsLoading(false);
+    setIsWaitingForSuggestions(false);
     setStopped(false);
   }, []);
 
@@ -59,9 +73,41 @@ export function useSuggestions({
     }
     setStopped(true);
     setIsLoading(false);
+    setIsWaitingForSuggestions(false);
 
-    console.log("Suggestions stopped by user");
+    logger.debug("Suggestions stopped by user");
   }, []);
+
+  useEffect(() => {
+    if (didChatJustBecomeReady(previousStatusRef.current, status)) {
+      if (transitionTimeoutRef.current) {
+        clearTimeout(transitionTimeoutRef.current);
+      }
+
+      setIsWaitingForSuggestions(true);
+      transitionTimeoutRef.current = setTimeout(() => {
+        setIsWaitingForSuggestions(false);
+        transitionTimeoutRef.current = null;
+      }, 600);
+    }
+
+    if (isLoading) {
+      if (transitionTimeoutRef.current) {
+        clearTimeout(transitionTimeoutRef.current);
+        transitionTimeoutRef.current = null;
+      }
+      setIsWaitingForSuggestions(false);
+    }
+
+    previousStatusRef.current = status;
+
+    return () => {
+      if (transitionTimeoutRef.current) {
+        clearTimeout(transitionTimeoutRef.current);
+        transitionTimeoutRef.current = null;
+      }
+    };
+  }, [status, isLoading]);
 
   useEffect(() => {
     // Reset stopped flag when a new chat starts
@@ -69,30 +115,24 @@ export function useSuggestions({
       setStopped(false);
     }
 
-    const loadSuggestions = async () => {
-      // Early returns for various conditions
-      if (
-        messages.length === 0 ||
-        status === "submitted" ||
-        status === "streaming" ||
-        stopped
-      ) {
-        return;
-      }
+    const shouldRequestSuggestions = shouldRequestSuggestionsForMessages(
+      messages,
+      status,
+      stopped
+    );
 
-      const lastMessage = messages[messages.length - 1];
-      if (lastMessage.role !== "assistant") {
-        setSuggestions([]);
+    const lastMessage = messages[messages.length - 1];
+    if (!shouldRequestSuggestions) {
+      if (shouldKeepExistingSuggestionsForMessages(messages)) {
         setIsLoading(false);
-        return;
       }
+      return;
+    }
 
-      if (!hasUserMessages(messages)) {
-        return;
-      }
-
+    const loadSuggestions = async () => {
       // Extract text from the last assistant message using utility
       const textParts = extractTextFromMessage(lastMessage);
+      const modelRelevantMessages = getModelRelevantMessages(messages);
 
       if (!textParts.trim()) {
         setIsLoading(false);
@@ -112,7 +152,8 @@ export function useSuggestions({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            messages: messages,
+            messages: modelRelevantMessages,
+            model: selectedModel,
           }),
           signal: abortController.signal,
         });
@@ -125,17 +166,17 @@ export function useSuggestions({
         if (response.ok) {
           const data = await response.json();
           setSuggestions(data.suggestions || []);
-          console.log("suggestions loaded successfully", data.suggestions);
+          logger.debug("Suggestions loaded successfully");
         } else {
           setSuggestions([]);
-          console.log("suggestions not loaded");
+          logger.debug("Suggestions not loaded");
         }
       } catch (error) {
         // Ignore abort errors
         if (error instanceof Error && error.name === "AbortError") {
           return;
         }
-        console.error("Error loading suggestions:", error);
+        logger.error("Error loading suggestions:", error);
         setSuggestions([]);
       } finally {
         // Only update loading state if this request wasn't aborted
@@ -158,17 +199,22 @@ export function useSuggestions({
 
     return () => {
       clearTimeout(timeoutId);
-      // Abort any ongoing request when effect cleanup runs
+      // Abort any ongoing request when effect cleanup runs.
+      // The aborted request's finally skips setIsLoading(false), so clear it
+      // here to avoid getting stuck in the loading state when no follow-up
+      // request is scheduled.
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
         abortControllerRef.current = null;
+        setIsLoading(false);
       }
     };
-  }, [messages, status, stopped]);
+  }, [messages, status, stopped, selectedModel]);
 
   return {
     suggestions,
     isLoading,
+    isWaitingForSuggestions,
     reset,
     stop,
     stopped,

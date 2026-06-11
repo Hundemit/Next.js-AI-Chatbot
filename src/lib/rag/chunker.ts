@@ -4,14 +4,14 @@ import { RAG_CONFIG } from "./config";
 import type { Chunk } from "./types";
 
 /**
- * Token-basiertes Chunking für verschiedene Dateitypen
+ * Token-based chunking for various file types.
  */
 
-// Verwende ein gängiges Modell für Token-Zählung (kann angepasst werden)
+// Use a common model for token counting (can be adjusted)
 const ENCODING = encodingForModel("gpt-4");
 
 /**
- * Teilt Text in Token-basierte Chunks auf
+ * Splits text into token-based chunks.
  */
 export function chunkText(
   text: string,
@@ -45,16 +45,16 @@ export function chunkText(
     return chunks;
   }
 
-  // Intelligentes Chunking mit Overlap
+  // Smart chunking with overlap
   let startIndex = 0;
   let chunkIndex = 0;
 
   while (startIndex < tokens.length) {
     const endIndex = Math.min(startIndex + chunkTokens, tokens.length);
-    const chunkTokens_slice = tokens.slice(startIndex, endIndex);
+    const chunkTokenSlice = tokens.slice(startIndex, endIndex);
 
-    // Decode zurück zu Text
-    const chunkText = ENCODING.decode(chunkTokens_slice);
+    // Decode back to text
+    const chunkText = ENCODING.decode(chunkTokenSlice);
 
     chunks.push({
       id: `${source}-${chunkIndex}`,
@@ -67,11 +67,11 @@ export function chunkText(
       },
     });
 
-    // Nächster Chunk mit Overlap
+    // Next chunk with overlap
     startIndex = endIndex - overlapTokens;
     chunkIndex++;
 
-    // Verhindere Endlosschleife
+    // Prevent infinite loop
     if (startIndex >= tokens.length - overlapTokens) {
       break;
     }
@@ -81,7 +81,7 @@ export function chunkText(
 }
 
 /**
- * Intelligentes Chunking für Code-Dateien (behält Kontext)
+ * Smart chunking for code files (preserves context).
  */
 export function chunkCode(
   text: string,
@@ -93,7 +93,7 @@ export function chunkCode(
     mtime: number;
   },
 ): Chunk[] {
-  // Für Code: Versuche an Zeilenumbrüchen zu chunken
+  // For code: try to chunk at line breaks
   const lines = text.split("\n");
   const chunks: Chunk[] = [];
   let currentChunk: string[] = [];
@@ -107,7 +107,7 @@ export function chunkCode(
     const lineTokens = ENCODING.encode(line).length;
 
     if (currentTokens + lineTokens > chunkTokens && currentChunk.length > 0) {
-      // Speichere aktuellen Chunk
+      // Save current chunk
       chunks.push({
         id: `${source}-${chunkIndex}`,
         text: currentChunk.join("\n"),
@@ -115,11 +115,11 @@ export function chunkCode(
         chunkIndex,
         metadata: {
           ...metadata,
-          totalChunks: 0, // Wird später aktualisiert
+          totalChunks: 0, // Will be updated later
         },
       });
 
-      // Overlap: Behalte letzten Teil des Chunks
+      // Overlap: keep last portion of the chunk
       const overlapLines = Math.floor(
         (overlapTokens / chunkTokens) * currentChunk.length,
       );
@@ -132,7 +132,7 @@ export function chunkCode(
     currentTokens += lineTokens;
   }
 
-  // Letzter Chunk
+  // Last chunk
   if (currentChunk.length > 0) {
     chunks.push({
       id: `${source}-${chunkIndex}`,
@@ -141,12 +141,12 @@ export function chunkCode(
       chunkIndex,
       metadata: {
         ...metadata,
-        totalChunks: chunks.length + 1,
+        totalChunks: 0, // Will be set below once the final count is known
       },
     });
   }
 
-  // Aktualisiere totalChunks für alle Chunks
+  // Set totalChunks for all chunks now that the final count is known
   return chunks.map((chunk) => ({
     ...chunk,
     metadata: {
@@ -157,7 +157,7 @@ export function chunkCode(
 }
 
 /**
- * Wählt die passende Chunking-Strategie basierend auf Dateityp
+ * Selects the appropriate chunking strategy based on file type.
  */
 export function chunkByFileType(
   text: string,

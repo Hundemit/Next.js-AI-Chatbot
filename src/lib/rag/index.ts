@@ -8,18 +8,23 @@ import { RAG_CONFIG } from "./config";
 import { parseFile } from "./parsers";
 import type { Chunk, RelevantContext, SourceInfo } from "./types";
 import { FileVectorStore } from "./vectorStore";
+import { logger } from "@/lib/logger";
 
 /**
- * Haupt-RAG-Logik für Knowledge Base Management
+ * Main RAG logic for knowledge base management.
  */
 
 const ENCODING = encodingForModel("gpt-4");
 
-// Embedding-Modell (OpenRouter unterstützt OpenAI-kompatible Embeddings)
-const EMBEDDING_MODEL = "text-embedding-3-small"; // Oder ein anderes Embedding-Modell
+export const EMBEDDING_MODEL = "text-embedding-3-small";
+export const MAX_CONTEXT_TOKENS = 2000;
+
+// Module-level singleton so the in-memory index cache survives across
+// requests within the same serverless invocation.
+const vectorStore = new FileVectorStore();
 
 /**
- * Berechnet SHA256 Hash einer Datei
+ * Computes the SHA-256 hash of a file.
  */
 async function calculateFileHash(filePath: string): Promise<string> {
   const { readFile } = await import("fs/promises");
@@ -28,8 +33,11 @@ async function calculateFileHash(filePath: string): Promise<string> {
 }
 
 /**
- * Generiert Embeddings für Texte (mit Batching)
- * Fallback auf direkte API-Calls falls embedMany nicht verfügbar
+ * Generates embeddings for an array of texts.
+ *
+ * Uses a single API call with array input when possible (the OpenRouter
+ * embeddings endpoint accepts `input: string[]`).  Falls back to
+ * sequential calls only when the batch request fails.
  */
 async function getEmbeddings(texts: string[]): Promise<number[][]> {
   if (!process.env.OPENROUTER_API_KEY) {
@@ -37,9 +45,44 @@ async function getEmbeddings(texts: string[]): Promise<number[][]> {
   }
 
   try {
-    // Direkte API-Calls zu OpenRouter (OpenRouter Provider unterstützt embedding() nicht direkt)
-    const embeddings: number[][] = [];
+    // Try batch request first (single API call)
+    const response = await fetch(
+      "https://openrouter.ai/api/v1/embeddings",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: EMBEDDING_MODEL,
+          input: texts,
+        }),
+      },
+    );
 
+    if (!response.ok) {
+      throw new Error(`OpenRouter API error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    // Sort by index to guarantee correct ordering
+    const sorted = [...data.data].sort(
+      (a: { index: number }, b: { index: number }) => a.index - b.index,
+    );
+
+    return sorted.map(
+      (item: { embedding: number[] }) => item.embedding || [],
+    );
+  } catch (batchError) {
+    // Fallback: sequential calls
+    logger.debug(
+      "Batch embedding failed, falling back to sequential:",
+      batchError,
+    );
+
+    const embeddings: number[][] = [];
     for (const text of texts) {
       try {
         const response = await fetch(
@@ -54,7 +97,7 @@ async function getEmbeddings(texts: string[]): Promise<number[][]> {
               model: EMBEDDING_MODEL,
               input: text,
             }),
-          }
+          },
         );
 
         if (!response.ok) {
@@ -64,21 +107,17 @@ async function getEmbeddings(texts: string[]): Promise<number[][]> {
         const data = await response.json();
         embeddings.push(data.data[0]?.embedding || []);
       } catch (error) {
-        console.error(`Fehler beim Embedding für Text:`, error);
+        logger.error("Embedding generation failed:", error);
         embeddings.push([]);
       }
     }
 
     return embeddings;
-  } catch (error) {
-    console.error("Fehler beim Generieren von Embeddings:", error);
-    // Fallback: Return leere Embeddings (wird später gefiltert)
-    return texts.map(() => []);
   }
 }
 
 /**
- * Generiert ein einzelnes Embedding
+ * Generates a single embedding for a text string.
  */
 async function getEmbedding(text: string): Promise<number[]> {
   const embeddings = await getEmbeddings([text]);
@@ -86,22 +125,21 @@ async function getEmbedding(text: string): Promise<number[]> {
 }
 
 /**
- * Prüft ob eine Datei unterstützt wird
+ * Checks whether a file extension is supported for indexing.
  */
 function isSupportedFile(filePath: string): boolean {
   const ext = extname(filePath).toLowerCase();
   return RAG_CONFIG.supportedFormats.includes(
-    ext as (typeof RAG_CONFIG.supportedFormats)[number]
+    ext as (typeof RAG_CONFIG.supportedFormats)[number],
   );
 }
 
 /**
- * Indiziert alle Dateien aus der Knowledge Base
+ * Indexes all files in the knowledge base directory.
  */
 export async function indexKnowledgeBase(
-  forceReindex: boolean = false
+  forceReindex: boolean = false,
 ): Promise<{ indexed: number; skipped: number; errors: number }> {
-  const vectorStore = new FileVectorStore();
   const knowledgeBasePath = RAG_CONFIG.knowledgeBasePath;
 
   let indexed = 0;
@@ -109,33 +147,22 @@ export async function indexKnowledgeBase(
   let errors = 0;
 
   try {
-    // Prüfe ob Knowledge Base Ordner existiert
     const { existsSync } = await import("fs");
     if (!existsSync(knowledgeBasePath)) {
-      console.warn(
-        `Knowledge Base Ordner nicht gefunden: ${knowledgeBasePath}`
-      );
+      logger.warn(`Knowledge base folder not found: ${knowledgeBasePath}`);
       return { indexed: 0, skipped: 0, errors: 0 };
     }
 
-    // Lade existierenden Index (für zukünftige Verwendung)
     await vectorStore.loadIndex();
 
-    // Lese alle Einträge (Dateien und Verzeichnisse)
     const allEntries = await readdir(knowledgeBasePath, { recursive: true });
-    console.log(
-      `Gefundene Einträge im Knowledge Base Ordner: ${allEntries.length}`,
-      allEntries.map((entry) => entry)
-    );
-    console.log(`Ordner: ${knowledgeBasePath}`);
 
-    // Filtere nur Dateien (nicht Verzeichnisse) mit unterstützten Formaten
+    // Filter to supported files only
     const supportedFiles: string[] = [];
     for (const entry of allEntries) {
       const entryPath = join(knowledgeBasePath, entry);
       try {
         const stats = await stat(entryPath);
-        // Nur Dateien, keine Verzeichnisse
         if (
           stats.isFile() &&
           isSupportedFile(entry) &&
@@ -144,17 +171,13 @@ export async function indexKnowledgeBase(
           supportedFiles.push(entry);
         }
       } catch {
-        // Ignoriere Fehler beim Stat-Check (z.B. wenn Datei zwischenzeitlich gelöscht wurde)
         continue;
       }
     }
 
-    console.log(
-      `Unterstützte Dateien: ${supportedFiles.length}`,
-      supportedFiles
-    );
+    logger.debug(`Found ${supportedFiles.length} supported files to index`);
 
-    // Batch-Processing für Embeddings
+    // Collect chunks for batch embedding
     const chunksToEmbed: { chunk: Chunk; text: string }[] = [];
 
     for (const file of supportedFiles) {
@@ -166,7 +189,7 @@ export async function indexKnowledgeBase(
         const fileHash = await calculateFileHash(filePath);
         const fileInfo = vectorStore.getFileInfo(relativePath);
 
-        // Prüfe ob Re-Indexing nötig ist
+        // Skip if file hasn't changed
         if (
           !forceReindex &&
           fileInfo &&
@@ -177,13 +200,10 @@ export async function indexKnowledgeBase(
           continue;
         }
 
-        // Entferne alte Chunks dieser Datei
+        // Remove old chunks for this file
         await vectorStore.removeFile(relativePath);
 
-        // Parse Datei
         const text = await parseFile(filePath);
-
-        // Chunk Text
         const fileExt = extname(filePath).toLowerCase();
         const chunks = chunkByFileType(text, relativePath, {
           fileType: fileExt as
@@ -198,167 +218,111 @@ export async function indexKnowledgeBase(
           mtime: stats.mtimeMs,
         });
 
-        // Sammle Chunks für Batch-Embedding
         for (const chunk of chunks) {
           chunksToEmbed.push({ chunk, text: chunk.text });
         }
 
         indexed++;
       } catch (error) {
-        console.error(`Fehler beim Indizieren von ${file}:`, error);
+        logger.error(`Error indexing ${file}:`, error);
         errors++;
       }
     }
 
-    // Generiere Embeddings in Batches
+    // Generate embeddings in batches
     const batchSize = RAG_CONFIG.embeddingBatchSize;
     for (let i = 0; i < chunksToEmbed.length; i += batchSize) {
       const batch = chunksToEmbed.slice(i, i + batchSize);
       const texts = batch.map((b) => b.text);
       const embeddings = await getEmbeddings(texts);
 
-      // Füge Embeddings zu Chunks hinzu
       const chunksWithEmbeddings = batch.map((item, idx) => ({
         ...item.chunk,
         embedding: embeddings[idx] || [],
       }));
 
-      // Speichere Chunks
       await vectorStore.addChunks(chunksWithEmbeddings);
     }
 
-    console.log(
-      `Indizierung abgeschlossen: ${indexed} Dateien indiziert, ${skipped} übersprungen, ${errors} Fehler`
+    logger.info(
+      `Indexing complete: ${indexed} indexed, ${skipped} skipped, ${errors} errors`,
     );
 
     return { indexed, skipped, errors };
   } catch (error) {
-    console.error("Fehler beim Indizieren der Knowledge Base:", error);
+    logger.error("Error indexing knowledge base:", error);
     throw error;
   }
 }
 
 /**
- * Sucht relevante Chunks basierend auf User-Query
+ * Searches for relevant chunks based on a user query.
  */
 export async function searchRelevantChunks(
   query: string,
-  topK: number = RAG_CONFIG.topK
+  topK: number = RAG_CONFIG.topK,
 ): Promise<Array<{ chunk: Chunk; score: number }>> {
-  const vectorStore = new FileVectorStore();
-
   try {
-    console.log("🔍 Suche nach relevanten Chunks für Query:", query);
-
-    // Generiere Embedding für Query
     const queryEmbedding = await getEmbedding(query);
-    console.log("📊 Query Embedding generiert, Länge:", queryEmbedding.length);
 
     if (queryEmbedding.length === 0) {
-      console.warn("⚠️ Konnte kein Embedding für Query generieren");
+      logger.warn("Could not generate query embedding");
       return [];
     }
 
-    // Lade Index um zu prüfen, ob Chunks vorhanden sind
     const index = await vectorStore.loadIndex();
     if (!index || index.chunks.length === 0) {
-      console.warn(
-        "⚠️ Keine Chunks im Index gefunden - Index wird im Hintergrund erstellt. Fallback auf Standard-Dokumente wird verwendet."
-      );
-      // Starte Indizierung im Hintergrund (nicht-blockierend)
+      // Start background indexing (non-blocking)
       initializeKnowledgeBase().catch((error) => {
-        console.warn("Hintergrund-Indizierung fehlgeschlagen:", error);
+        logger.warn("Background indexing failed:", error);
       });
       return [];
     }
 
-    const chunksWithEmbeddings = index.chunks.filter(
-      (c) => c.embedding && c.embedding.length > 0
-    );
-    console.log(
-      `📚 Index: ${index.chunks.length} Chunks total, ${chunksWithEmbeddings.length} mit Embeddings`
-    );
-
-    if (chunksWithEmbeddings.length > 0) {
-      // Prüfe Embedding-Dimensionen
-      const firstChunkEmbedding = chunksWithEmbeddings[0].embedding!;
-      console.log(
-        `📏 Embedding-Dimensionen: Query=${queryEmbedding.length}, Chunk=${firstChunkEmbedding.length}`
-      );
-
-      if (queryEmbedding.length !== firstChunkEmbedding.length) {
-        console.error(
-          `❌ Embedding-Dimensionen stimmen nicht überein! Query: ${queryEmbedding.length}, Chunk: ${firstChunkEmbedding.length}`
-        );
-      }
-    }
-
-    // Suche ähnliche Chunks
     const results = await vectorStore.search(queryEmbedding, {
       topK,
       minSimilarity: RAG_CONFIG.minSimilarity,
     });
 
-    console.log(
-      `✅ Suche abgeschlossen: ${results.length} Ergebnisse gefunden (minSimilarity: ${RAG_CONFIG.minSimilarity})`
+    logger.debug(
+      `Search: ${results.length} results (minSimilarity: ${RAG_CONFIG.minSimilarity})`,
     );
-    if (results.length > 0) {
-      console.log(
-        "📈 Top Ergebnisse:",
-        results.map((r) => ({
-          source: r.chunk.source,
-          score: r.score.toFixed(4),
-        }))
-      );
-    } else {
-      console.log(
-        "💡 Tipp: Versuche minSimilarity zu senken (aktuell:",
-        RAG_CONFIG.minSimilarity,
-        ")"
-      );
-    }
 
     return results;
   } catch (error) {
-    console.error("❌ Fehler bei der Suche:", error);
+    logger.error("Search error:", error);
     return [];
   }
 }
 
 /**
- * Lädt relevanten Kontext basierend auf User-Query
+ * Loads relevant context based on a user query.
  */
 export async function loadRelevantContext(
-  userQuery: string
+  userQuery: string,
 ): Promise<RelevantContext> {
   try {
-    // Search relevant chunks
     const results = await searchRelevantChunks(userQuery);
-    console.log("=========================================");
-    console.log(
-      "searchRelevantChunks Results:",
-      results.map((r) => r.chunk.id)
-    );
-    console.log("=========================================");
+
     if (results.length === 0) {
       return {
         context: "",
         sources: [],
+        results: [],
+        usedChunkIds: [],
+        tokenCount: 0,
       };
     }
 
-    // Kombiniere Chunks zu Kontext
+    // Combine chunks into context
     const chunks: string[] = [];
     const sources: SourceInfo[] = [];
-
-    // Begrenze Gesamt-Token-Anzahl (ca. 2000 Tokens für Kontext, Rest für Prompt)
-    const maxContextTokens = 2000;
     let currentTokens = 0;
 
     for (const result of results) {
       const chunkTokens = ENCODING.encode(result.chunk.text).length;
 
-      if (currentTokens + chunkTokens > maxContextTokens) {
+      if (currentTokens + chunkTokens > MAX_CONTEXT_TOKENS) {
         break;
       }
 
@@ -372,7 +336,7 @@ export async function loadRelevantContext(
       currentTokens += chunkTokens;
     }
 
-    // Formatiere Kontext mit Source-Attribution
+    // Format context with source attribution
     const contextParts: string[] = [];
 
     if (chunks.length > 0) {
@@ -383,7 +347,7 @@ export async function loadRelevantContext(
         contextParts.push(
           `\n### ${source.file} (Chunk ${
             source.chunkIndex
-          }, Relevanz: ${source.score.toFixed(2)})\n\n${chunkText}\n`
+          }, Relevanz: ${source.score.toFixed(2)})\n\n${chunkText}\n`,
         );
       });
     }
@@ -391,35 +355,54 @@ export async function loadRelevantContext(
     return {
       context: contextParts.join("\n"),
       sources,
+      results,
+      usedChunkIds: sources.map(
+        (source) => `${source.file}-${source.chunkIndex}`,
+      ),
+      tokenCount: currentTokens,
     };
   } catch (error) {
-    console.error("Fehler beim Laden des relevanten Kontexts:", error);
+    logger.error("Error loading relevant context:", error);
     return {
       context: "",
       sources: [],
+      results: [],
+      usedChunkIds: [],
+      tokenCount: 0,
     };
   }
 }
 
 /**
- * Initialisiert die Knowledge Base (wird beim Start aufgerufen)
+ * Initializes the knowledge base (called on startup).
+ * Prevents parallel indexing via a module-level promise guard.
  */
 let indexingPromise: Promise<{
   indexed: number;
   skipped: number;
   errors: number;
 }> | null = null;
+let hasInitializedKnowledgeBase = false;
 
 export async function initializeKnowledgeBase(
-  forceReindex: boolean = false
+  forceReindex: boolean = false,
 ): Promise<void> {
-  // Verhindere parallele Indizierung
-  if (indexingPromise) {
-    await indexingPromise;
+  if (!forceReindex && hasInitializedKnowledgeBase) {
     return;
   }
 
+  if (indexingPromise) {
+    await indexingPromise;
+    if (!forceReindex) {
+      return;
+    }
+  }
+
   indexingPromise = indexKnowledgeBase(forceReindex);
-  await indexingPromise;
-  indexingPromise = null;
+  try {
+    await indexingPromise;
+    hasInitializedKnowledgeBase = true;
+  } finally {
+    indexingPromise = null;
+  }
 }

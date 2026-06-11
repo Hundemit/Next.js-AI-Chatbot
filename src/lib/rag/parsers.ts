@@ -6,11 +6,11 @@ import PDFParser from "pdf2json";
 import { RAG_CONFIG } from "./config";
 
 /**
- * Parser für verschiedene Dateitypen
+ * Parsers for various file types.
  */
 
 /**
- * Prüft ob Datei zu groß ist
+ * Checks whether a file exceeds the size limit.
  */
 async function checkFileSize(filePath: string): Promise<boolean> {
   try {
@@ -23,20 +23,20 @@ async function checkFileSize(filePath: string): Promise<boolean> {
 }
 
 /**
- * Parst PDF zu Text
+ * Parses a PDF file to text.
  */
 export async function parsePDF(filePath: string): Promise<string> {
   if (!(await checkFileSize(filePath))) {
     throw new Error(
-      `Datei zu groß: ${filePath} (max ${RAG_CONFIG.maxFileSizeMB}MB)`,
+      `File too large: ${filePath} (max ${RAG_CONFIG.maxFileSizeMB}MB)`,
     );
   }
 
   try {
-    // Lese die PDF-Datei als Buffer
+    // Read the PDF file as buffer
     const dataBuffer = await readFile(filePath);
 
-    // Erstelle Promise-basierte Wrapper für pdf2json
+    // Promise-based wrapper for pdf2json
     return new Promise<string>((resolve, reject) => {
       const pdfParser = new PDFParser(null, true);
 
@@ -46,7 +46,7 @@ export async function parsePDF(filePath: string): Promise<string> {
             ? errData.parserError
             : errData;
         console.error("PDF Parsing Error:", error);
-        reject(new Error(`PDF-Parsing Fehler: ${error}`));
+        reject(new Error(`PDF parsing error: ${error}`));
       });
 
       pdfParser.on("pdfParser_dataReady", () => {
@@ -54,26 +54,26 @@ export async function parsePDF(filePath: string): Promise<string> {
           const parsedText = pdfParser.getRawTextContent();
           resolve(parsedText || "");
         } catch (error) {
-          reject(new Error(`Fehler beim Extrahieren des Textes: ${error}`));
+          reject(new Error(`Error extracting text: ${error}`));
         }
       });
 
-      // Lade PDF aus Buffer
+      // Load PDF from buffer
       pdfParser.parseBuffer(dataBuffer);
     });
   } catch (error) {
-    console.error(`PDF-Parsing Fehler für ${filePath}:`, error);
-    throw new Error(`Fehler beim Parsen von PDF: ${filePath} - ${error}`);
+    console.error(`PDF parsing error for ${filePath}:`, error);
+    throw new Error(`Error parsing PDF: ${filePath} - ${error}`);
   }
 }
 
 /**
- * Parst DOCX zu Text
+ * Parses a DOCX file to text.
  */
 export async function parseDOCX(filePath: string): Promise<string> {
   if (!(await checkFileSize(filePath))) {
     throw new Error(
-      `Datei zu groß: ${filePath} (max ${RAG_CONFIG.maxFileSizeMB}MB)`,
+      `File too large: ${filePath} (max ${RAG_CONFIG.maxFileSizeMB}MB)`,
     );
   }
 
@@ -81,50 +81,50 @@ export async function parseDOCX(filePath: string): Promise<string> {
     const result = await mammoth.extractRawText({ path: filePath });
     return result.value;
   } catch (error) {
-    throw new Error(`Fehler beim Parsen von DOCX: ${filePath} - ${error}`);
+    throw new Error(`Error parsing DOCX: ${filePath} - ${error}`);
   }
 }
 
 /**
- * Parst Text-Dateien (TXT, MD, etc.)
+ * Parses text files (TXT, MD, etc.).
  */
 export async function parseText(filePath: string): Promise<string> {
   try {
     const content = await readFile(filePath, "utf-8");
     return content;
   } catch (error) {
-    throw new Error(`Fehler beim Lesen von Text-Datei: ${filePath} - ${error}`);
+    throw new Error(`Error reading text file: ${filePath} - ${error}`);
   }
 }
 
 /**
- * Parst JSON-Dateien
+ * Parses JSON files.
  */
 export async function parseJSON(filePath: string): Promise<string> {
   try {
     const content = await readFile(filePath, "utf-8");
     const json = JSON.parse(content);
 
-    // Konvertiere JSON zu lesbarem Text
+    // Convert JSON to readable text
     if (typeof json === "object") {
       return JSON.stringify(json, null, 2);
     }
 
     return String(json);
   } catch (error) {
-    throw new Error(`Fehler beim Parsen von JSON: ${filePath} - ${error}`);
+    throw new Error(`Error parsing JSON: ${filePath} - ${error}`);
   }
 }
 
 /**
- * Parst CSV-Dateien
+ * Parses CSV files.
  */
 export async function parseCSV(filePath: string): Promise<string> {
   try {
     const content = await readFile(filePath, "utf-8");
     const lines = content.split("\n");
 
-    // Einfache CSV-zu-Text Konvertierung
+    // Simple CSV-to-text conversion
     return lines
       .map((line, index) => {
         if (index === 0) {
@@ -134,12 +134,12 @@ export async function parseCSV(filePath: string): Promise<string> {
       })
       .join("\n");
   } catch (error) {
-    throw new Error(`Fehler beim Parsen von CSV: ${filePath} - ${error}`);
+    throw new Error(`Error parsing CSV: ${filePath} - ${error}`);
   }
 }
 
 /**
- * Parst eine Datei basierend auf ihrem Dateityp
+ * Parses a file based on its extension.
  */
 export async function parseFile(filePath: string): Promise<string> {
   const ext = extname(filePath).toLowerCase();
@@ -161,7 +161,7 @@ export async function parseFile(filePath: string): Promise<string> {
       try {
         return parseText(filePath);
       } catch {
-        throw new Error(`Nicht unterstützter Dateityp: ${ext}`);
+        throw new Error(`Unsupported file type: ${ext}`);
       }
   }
 }

@@ -2,7 +2,7 @@
 
 import { memo } from "react";
 
-import { useChatContext } from "./ChatContext";
+import { useChatInputContext } from "./ChatContext";
 
 import {
   PromptInput,
@@ -30,7 +30,7 @@ export const ChatInput = memo(function ChatInput() {
     handleModelChange,
     models,
     isChatInProgress,
-  } = useChatContext();
+  } = useChatInputContext();
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     handleInputChange(e.currentTarget.value);

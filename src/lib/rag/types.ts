@@ -27,12 +27,99 @@ export interface SearchResult {
 export interface RelevantContext {
   context: string; // Kombinierter Kontext-Text
   sources: SourceInfo[]; // Source-Attribution
+  results: SearchResult[];
+  usedChunkIds: string[];
+  tokenCount: number;
 }
 
 export interface SourceInfo {
   file: string;
   chunkIndex: number;
   score: number;
+}
+
+export interface ChunkDiagnostic {
+  id: string;
+  source: string;
+  chunkIndex: number;
+  totalChunks: number;
+  fileType: string;
+  filePath: string;
+  fileHash: string;
+  modifiedAt: number;
+  embeddingDimensions: number;
+  characterCount: number;
+  preview: string;
+}
+
+export interface ScoredChunkDiagnostic extends ChunkDiagnostic {
+  score: number;
+  used: boolean;
+}
+
+export interface IndexDiagnostic {
+  indexed: boolean;
+  version: string | null;
+  createdAt: number | null;
+  updatedAt: number | null;
+  fileCount: number;
+  chunkCount: number;
+  chunksWithEmbeddings: number;
+  files: Array<{
+    filePath: string;
+    fileHash: string;
+    modifiedAt: number;
+    chunkCount: number;
+  }>;
+  chunks: ChunkDiagnostic[];
+}
+
+export interface RetrievalDiagnostic {
+  candidates: ScoredChunkDiagnostic[];
+  usedChunks: ScoredChunkDiagnostic[];
+}
+
+export interface SentMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export interface ChatRequestDiagnostic {
+  requestId: string;
+  query: string;
+  model: string;
+  requestedAt: number;
+  contextReadyAt: number;
+  retrievalDurationMs: number;
+  mode: "rag" | "full-context" | "fallback";
+  fallbackReason: string | null;
+  config: {
+    topK: number;
+    minSimilarity: number;
+    maxContextTokens: number;
+    chunkTokens: number;
+    chunkOverlapTokens: number;
+    embeddingModel: string;
+  };
+  prompt: {
+    systemPromptIncluded: boolean;
+    systemContextCharacters: number;
+    ragContextCharacters: number;
+    ragContextTokens: number;
+  };
+  index: Omit<IndexDiagnostic, "files" | "chunks">;
+  retrieval: RetrievalDiagnostic;
+  finishReason?: string;
+  tokenUsage?: {
+    inputTokens: number | undefined;
+    outputTokens: number | undefined;
+  };
+  responseDurationMs?: number;
+  messageCountBeforeFilter?: number;
+  messageCountAfterFilter?: number;
+  systemContextFull?: string;
+  sentMessages?: SentMessage[];
+  responseText?: string;
 }
 
 export interface VectorStoreIndex {
@@ -89,4 +176,3 @@ export interface IVectorStore {
    */
   saveIndex(index: VectorStoreIndex): Promise<void>;
 }
-

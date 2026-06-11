@@ -1,0 +1,1177 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nordi AI Chatbot - Technische Entwicklerdokumentation</title>
+    <style>
+      :root {
+        --paper: #f7f3ea;
+        --paper-strong: #fffaf0;
+        --ink: #1b2528;
+        --muted: #657176;
+        --line: #d9d0bd;
+        --line-strong: #b9aa8f;
+        --panel: #fffdf8;
+        --panel-alt: #edf4f2;
+        --accent: #0f6f6a;
+        --accent-strong: #064f4b;
+        --signal: #ba4d2f;
+        --signal-soft: #ffe6da;
+        --code-bg: #172226;
+        --code-ink: #eef6ee;
+        --shadow: 0 18px 55px rgba(37, 34, 27, 0.12);
+        --radius: 8px;
+        --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        --sans: "Aptos", "Segoe UI", "Helvetica Neue", sans-serif;
+        --serif: Georgia, "Times New Roman", serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background:
+          linear-gradient(90deg, rgba(27, 37, 40, 0.045) 1px, transparent 1px),
+          linear-gradient(180deg, rgba(27, 37, 40, 0.035) 1px, transparent 1px),
+          var(--paper);
+        background-size: 34px 34px;
+        color: var(--ink);
+        font-family: var(--sans);
+        line-height: 1.58;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .shell {
+        display: grid;
+        grid-template-columns: 292px minmax(0, 1fr);
+        min-height: 100vh;
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow-y: auto;
+        border-right: 1px solid var(--line);
+        background: rgba(255, 250, 240, 0.88);
+        backdrop-filter: blur(18px);
+        padding: 26px 22px;
+      }
+
+      .brand {
+        border: 1px solid var(--line-strong);
+        background: var(--panel);
+        padding: 16px;
+        border-radius: var(--radius);
+        box-shadow: 8px 8px 0 rgba(15, 111, 106, 0.13);
+      }
+
+      .brand-mark {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--accent-strong);
+        font-family: var(--mono);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .brand-mark::before {
+        content: "";
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--signal);
+        box-shadow: 16px 0 0 var(--accent);
+      }
+
+      .brand h1 {
+        margin: 14px 0 8px;
+        font-family: var(--serif);
+        font-size: 25px;
+        line-height: 1.05;
+        letter-spacing: 0;
+      }
+
+      .brand p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      nav {
+        margin-top: 26px;
+      }
+
+      nav h2 {
+        margin: 0 0 10px;
+        color: var(--muted);
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      nav a {
+        display: block;
+        border-left: 3px solid transparent;
+        padding: 8px 10px;
+        color: #304044;
+        font-size: 14px;
+        text-decoration: none;
+      }
+
+      nav a:hover,
+      nav a:focus {
+        border-left-color: var(--signal);
+        background: var(--signal-soft);
+        outline: none;
+      }
+
+      main {
+        min-width: 0;
+      }
+
+      .hero {
+        border-bottom: 1px solid var(--line);
+        background:
+          radial-gradient(circle at 86% 18%, rgba(186, 77, 47, 0.18), transparent 28%),
+          linear-gradient(135deg, rgba(255, 253, 248, 0.98), rgba(237, 244, 242, 0.84));
+        padding: 56px min(6vw, 76px) 34px;
+      }
+
+      .kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 18px;
+        border: 1px solid var(--line-strong);
+        background: rgba(255, 250, 240, 0.78);
+        padding: 7px 10px;
+        color: var(--accent-strong);
+        font-family: var(--mono);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .kicker span {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background: var(--signal);
+      }
+
+      .hero h2 {
+        max-width: 980px;
+        margin: 0;
+        font-family: var(--serif);
+        font-size: clamp(42px, 7vw, 84px);
+        font-weight: 700;
+        line-height: 0.96;
+        letter-spacing: 0;
+      }
+
+      .hero p {
+        max-width: 820px;
+        margin: 24px 0 0;
+        color: #3a4b50;
+        font-size: 19px;
+      }
+
+      .meta-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 34px;
+      }
+
+      .meta {
+        border: 1px solid var(--line);
+        background: rgba(255, 253, 248, 0.86);
+        padding: 14px;
+        border-radius: var(--radius);
+      }
+
+      .meta b {
+        display: block;
+        color: var(--muted);
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .meta span {
+        display: block;
+        margin-top: 5px;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .content {
+        max-width: 1160px;
+        padding: 42px min(6vw, 76px) 86px;
+      }
+
+      section {
+        scroll-margin-top: 22px;
+        margin-top: 54px;
+      }
+
+      section:first-child {
+        margin-top: 0;
+      }
+
+      .section-head {
+        display: grid;
+        grid-template-columns: 84px minmax(0, 1fr);
+        gap: 20px;
+        align-items: start;
+        margin-bottom: 18px;
+      }
+
+      .number {
+        border-top: 4px solid var(--ink);
+        padding-top: 8px;
+        color: var(--signal);
+        font-family: var(--mono);
+        font-size: 17px;
+        font-weight: 800;
+      }
+
+      h2 {
+        margin: 0;
+        font-family: var(--serif);
+        font-size: clamp(30px, 4vw, 48px);
+        line-height: 1.05;
+        letter-spacing: 0;
+      }
+
+      h3 {
+        margin: 0 0 10px;
+        font-size: 18px;
+        line-height: 1.25;
+      }
+
+      p {
+        margin: 0 0 14px;
+      }
+
+      .lede {
+        max-width: 900px;
+        color: #405156;
+        font-size: 18px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .grid.three {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        background: var(--panel);
+        border-radius: var(--radius);
+        padding: 18px;
+        box-shadow: 0 2px 0 rgba(27, 37, 40, 0.04);
+      }
+
+      .card.accent {
+        border-color: rgba(15, 111, 106, 0.36);
+        background: linear-gradient(180deg, #f9fffc, #edf4f2);
+      }
+
+      .card.warn {
+        border-color: rgba(186, 77, 47, 0.38);
+        background: linear-gradient(180deg, #fffaf6, #ffece2);
+      }
+
+      .tag-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .tag {
+        border: 1px solid var(--line-strong);
+        background: #fbf4e6;
+        border-radius: 999px;
+        padding: 4px 9px;
+        color: #314448;
+        font-family: var(--mono);
+        font-size: 12px;
+      }
+
+      .flow {
+        display: grid;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .flow-row {
+        display: grid;
+        grid-template-columns: minmax(160px, 0.75fr) minmax(0, 1.8fr) minmax(140px, 0.65fr);
+        gap: 10px;
+        align-items: stretch;
+      }
+
+      .flow-node {
+        border: 1px solid var(--line-strong);
+        background: var(--panel);
+        border-radius: var(--radius);
+        padding: 13px;
+        min-height: 74px;
+      }
+
+      .flow-node strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .flow-node small {
+        color: var(--muted);
+      }
+
+      .flow-arrow {
+        display: grid;
+        place-items: center;
+        color: var(--accent-strong);
+        font-family: var(--mono);
+        font-weight: 800;
+      }
+
+      .pipeline {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 18px;
+      }
+
+      .step {
+        position: relative;
+        border: 1px solid var(--line-strong);
+        background: var(--panel);
+        border-radius: var(--radius);
+        padding: 14px 12px;
+        min-height: 142px;
+      }
+
+      .step::after {
+        content: ">";
+        position: absolute;
+        top: 50%;
+        right: -10px;
+        z-index: 1;
+        transform: translateY(-50%);
+        color: var(--signal);
+        font-family: var(--mono);
+        font-weight: 900;
+      }
+
+      .step:last-child::after {
+        content: "";
+      }
+
+      .step b {
+        display: inline-grid;
+        place-items: center;
+        width: 25px;
+        height: 25px;
+        margin-bottom: 10px;
+        background: var(--ink);
+        color: var(--paper-strong);
+        border-radius: 50%;
+        font-family: var(--mono);
+        font-size: 12px;
+      }
+
+      .step strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .step span {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        background: var(--panel);
+        border-radius: var(--radius);
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid var(--line);
+        padding: 12px 13px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: #e7eee9;
+        color: #283a3d;
+        font-family: var(--mono);
+        font-size: 12px;
+        text-transform: uppercase;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      code,
+      pre {
+        font-family: var(--mono);
+      }
+
+      :not(pre) > code {
+        border: 1px solid rgba(27, 37, 40, 0.14);
+        background: rgba(255, 250, 240, 0.8);
+        border-radius: 5px;
+        padding: 1px 5px;
+        color: #153f41;
+        font-size: 0.92em;
+      }
+
+      pre {
+        overflow-x: auto;
+        margin: 14px 0 0;
+        border: 1px solid #304448;
+        background: var(--code-bg);
+        color: var(--code-ink);
+        border-radius: var(--radius);
+        padding: 16px;
+        font-size: 13px;
+        line-height: 1.55;
+        box-shadow: var(--shadow);
+      }
+
+      pre code {
+        color: inherit;
+      }
+
+      .api {
+        display: grid;
+        gap: 14px;
+      }
+
+      .endpoint {
+        border: 1px solid var(--line-strong);
+        background: var(--panel);
+        border-radius: var(--radius);
+        padding: 18px;
+      }
+
+      .endpoint-head {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+
+      .method {
+        display: inline-block;
+        min-width: 54px;
+        background: var(--accent-strong);
+        color: #fff;
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-family: var(--mono);
+        font-size: 12px;
+        font-weight: 800;
+        text-align: center;
+      }
+
+      .method.get {
+        background: #5d6b30;
+      }
+
+      .path {
+        font-family: var(--mono);
+        font-weight: 800;
+      }
+
+      .note {
+        border-left: 5px solid var(--signal);
+        background: var(--signal-soft);
+        padding: 14px 16px;
+        border-radius: 0 var(--radius) var(--radius) 0;
+      }
+
+      .file-list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .file-item {
+        display: grid;
+        grid-template-columns: minmax(240px, 0.9fr) minmax(0, 1.4fr);
+        gap: 14px;
+        border-bottom: 1px solid var(--line);
+        padding: 10px 0;
+      }
+
+      .file-item:last-child {
+        border-bottom: 0;
+      }
+
+      .file-item code {
+        width: max-content;
+      }
+
+      .footer {
+        border-top: 1px solid var(--line);
+        background: rgba(255, 250, 240, 0.88);
+        padding: 24px min(6vw, 76px);
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      @media (max-width: 1080px) {
+        .shell {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          position: static;
+          height: auto;
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+
+        nav {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 4px 14px;
+        }
+
+        nav h2 {
+          grid-column: 1 / -1;
+        }
+
+        .pipeline,
+        .meta-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .step::after {
+          display: none;
+        }
+      }
+
+      @media (max-width: 760px) {
+        .hero,
+        .content,
+        .footer {
+          padding-left: 20px;
+          padding-right: 20px;
+        }
+
+        .grid,
+        .grid.three,
+        .pipeline,
+        .meta-grid,
+        .flow-row,
+        .file-item,
+        .section-head {
+          grid-template-columns: 1fr;
+        }
+
+        nav {
+          grid-template-columns: 1fr;
+        }
+
+        .flow-arrow {
+          min-height: 24px;
+          transform: rotate(90deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar" aria-label="Dokumentnavigation">
+        <div class="brand">
+          <div class="brand-mark">Developer Reference</div>
+          <h1>Nordi AI Chatbot</h1>
+          <p>Technische Dokumentation für Datenverarbeitung, Knowledge/RAG und LLM-Kommunikation.</p>
+        </div>
+        <nav>
+          <h2>Inhalt</h2>
+          <a href="#overview">01 Systemüberblick</a>
+          <a href="#architecture">02 Architektur</a>
+          <a href="#runtime-flow">03 End-to-End Datenfluss</a>
+          <a href="#knowledge">04 Knowledge-Verarbeitung</a>
+          <a href="#retrieval">05 Retrieval zur Laufzeit</a>
+          <a href="#llm">06 LLM-Kommunikation</a>
+          <a href="#api">07 API-Referenz</a>
+          <a href="#config">08 Konfiguration &amp; Betrieb</a>
+          <a href="#developer-reference">09 Entwickler-Referenz</a>
+        </nav>
+      </aside>
+
+      <main>
+        <header class="hero">
+          <div class="kicker"><span></span> Stand: aktuelle Codebasis</div>
+          <h2>Wie der Chatbot Wissen verarbeitet und Antworten erzeugt.</h2>
+          <p>
+            Diese Dokumentation beschreibt die relevanten Runtime-Komponenten des Next.js-Chatbots:
+            vom Client-State über die API-Routen bis zur RAG-Pipeline, dem Dateisystem-Vector-Store
+            und der Kommunikation mit OpenRouter über das Vercel AI SDK.
+          </p>
+          <div class="meta-grid" aria-label="Kurzreferenz">
+            <div class="meta"><b>Framework</b><span>Next.js App Router</span></div>
+            <div class="meta"><b>LLM Provider</b><span>OpenRouter</span></div>
+            <div class="meta"><b>Knowledge</b><span>File-based RAG</span></div>
+            <div class="meta"><b>Artefakt</b><span>Statische HTML-Datei</span></div>
+          </div>
+        </header>
+
+        <div class="content">
+          <section id="overview">
+            <div class="section-head">
+              <div class="number">01</div>
+              <div>
+                <h2>Systemüberblick</h2>
+                <p class="lede">
+                  Der Chatbot ist eine clientseitige Chat-Oberfläche mit serverseitigen Next.js API-Routen.
+                  Die Antworten werden per Streaming vom LLM geliefert. Projektspezifisches Wissen wird
+                  vorab in einen lokalen JSON-Index überführt und pro Nutzerfrage semantisch abgerufen.
+                </p>
+              </div>
+            </div>
+
+            <div class="grid three">
+              <article class="card accent">
+                <h3>Client</h3>
+                <p>
+                  `ChatProvider` kapselt den Chat-State, `useChat` versendet Nachrichten an `/api/chat`,
+                  und die UI rendert den AI-SDK-Stream als `UIMessage[]`.
+                </p>
+                <div class="tag-row">
+                  <span class="tag">ChatContext.tsx</span>
+                  <span class="tag">@ai-sdk/react</span>
+                  <span class="tag">UIMessage</span>
+                </div>
+              </article>
+              <article class="card accent">
+                <h3>Server API</h3>
+                <p>
+                  Route Handler laden Prompts, initialisieren die Knowledge Base, erzeugen RAG-Kontext
+                  und leiten Messages an OpenRouter weiter.
+                </p>
+                <div class="tag-row">
+                  <span class="tag">/api/chat</span>
+                  <span class="tag">/api/suggestions</span>
+                  <span class="tag">/api/rag/reindex</span>
+                </div>
+              </article>
+              <article class="card accent">
+                <h3>RAG Layer</h3>
+                <p>
+                  Dateien aus `src/data/knowledge-base` werden geparst, gechunkt, eingebettet und
+                  über Cosine Similarity zur Anfrage passend wieder abgerufen.
+                </p>
+                <div class="tag-row">
+                  <span class="tag">chunkTokens 512</span>
+                  <span class="tag">topK 20</span>
+                  <span class="tag">minSimilarity 0.3</span>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section id="architecture">
+            <div class="section-head">
+              <div class="number">02</div>
+              <div>
+                <h2>Architektur</h2>
+                <p class="lede">
+                  Die Anwendung trennt UI-State, API-Orchestrierung und RAG-Verarbeitung. Der Vector Store
+                  ist bewusst dateibasiert und benötigt keine externe Datenbank.
+                </p>
+              </div>
+            </div>
+
+            <div class="flow" aria-label="Architekturdiagramm">
+              <div class="flow-row">
+                <div class="flow-node"><strong>Browser</strong><small>Chat UI, Modellwahl, Suggestions</small></div>
+                <div class="flow-arrow">sendMessage / fetch</div>
+                <div class="flow-node"><strong>Next.js API</strong><small>Route Handler unter `src/app/api`</small></div>
+              </div>
+              <div class="flow-row">
+                <div class="flow-node"><strong>Prompts</strong><small>`system-prompt.txt`, `suggestion-prompt.txt`</small></div>
+                <div class="flow-arrow">Kontextaufbau</div>
+                <div class="flow-node"><strong>loadDocuments</strong><small>kombiniert System-Prompt und RAG-Kontext</small></div>
+              </div>
+              <div class="flow-row">
+                <div class="flow-node"><strong>Knowledge Base</strong><small>Markdown, Text, PDF, DOCX, JSON, CSV</small></div>
+                <div class="flow-arrow">parse -> chunk -> embed -> search</div>
+                <div class="flow-node"><strong>RAG Library</strong><small>`src/lib/rag/*` mit FileVectorStore</small></div>
+              </div>
+              <div class="flow-row">
+                <div class="flow-node"><strong>OpenRouter</strong><small>Chat Completion und Embeddings API</small></div>
+                <div class="flow-arrow">streamText</div>
+                <div class="flow-node"><strong>AI SDK Stream</strong><small>`toUIMessageStreamResponse()` zurück zum Client</small></div>
+              </div>
+            </div>
+
+            <div class="note" style="margin-top: 18px">
+              Die Datei `src/lib/loadDocuments.ts` ist der Übergang zwischen Prompt-Dateien und RAG:
+              `loadRelevantContext(userQuery)` lädt zuerst den System-Prompt und hängt danach nur die
+              semantisch relevanten Knowledge-Chunks an.
+            </div>
+          </section>
+
+          <section id="runtime-flow">
+            <div class="section-head">
+              <div class="number">03</div>
+              <div>
+                <h2>End-to-End Datenfluss</h2>
+                <p class="lede">
+                  Eine Nutzerfrage durchläuft UI-State, AI-SDK-Message-Konvertierung, semantisches Retrieval,
+                  Prompt-Augmentation und schließlich den Streaming-Response-Kanal zurück zur Oberfläche.
+                </p>
+              </div>
+            </div>
+
+            <div class="pipeline">
+              <div class="step"><b>1</b><strong>Eingabe</strong><span>`ChatInput` ruft `handleSubmit` im `ChatContext` auf.</span></div>
+              <div class="step"><b>2</b><strong>Message Send</strong><span>`useChat.sendMessage()` sendet Text und `model` an `/api/chat`.</span></div>
+              <div class="step"><b>3</b><strong>Query</strong><span>Die letzte User-Message wird mit `extractTextFromMessage()` extrahiert.</span></div>
+              <div class="step"><b>4</b><strong>Retrieval</strong><span>RAG sucht passende Chunks zur User-Query.</span></div>
+              <div class="step"><b>5</b><strong>LLM Call</strong><span>`streamText()` ruft `openrouter.chat(selectedModel)` auf.</span></div>
+              <div class="step"><b>6</b><strong>Stream UI</strong><span>`toUIMessageStreamResponse()` aktualisiert die Chat-Messages.</span></div>
+            </div>
+
+            <pre><code>const result = streamText({
+  model: openrouter.chat(selectedModel),
+  system: systemContext || undefined,
+  messages: convertToModelMessages(messages),
+});
+
+return result.toUIMessageStreamResponse();</code></pre>
+          </section>
+
+          <section id="knowledge">
+            <div class="section-head">
+              <div class="number">04</div>
+              <div>
+                <h2>Knowledge-Verarbeitung</h2>
+                <p class="lede">
+                  Die Knowledge Base wird aus lokalen Dateien aufgebaut. Der Index enthält Chunks,
+                  Embeddings und einen File-Index mit Hash und Modification Time, damit unveränderte
+                  Dateien übersprungen werden können.
+                </p>
+              </div>
+            </div>
+
+            <div class="grid">
+              <article class="card">
+                <h3>Quelle und Formate</h3>
+                <p>
+                  `RAG_CONFIG.knowledgeBasePath` zeigt auf `src/data/knowledge-base`.
+                  Unterstützt werden `.pdf`, `.docx`, `.txt`, `.md`, `.json` und `.csv`.
+                  Versteckte Dateien und Verzeichnisse werden ignoriert.
+                </p>
+              </article>
+              <article class="card">
+                <h3>Change Detection</h3>
+                <p>
+                  Für jede Datei wird ein SHA256-Hash berechnet und zusammen mit `mtimeMs`
+                  im `fileIndex` abgelegt. Wenn Hash und mtime unverändert sind, wird die Datei
+                  bei normalem Reindexing übersprungen.
+                </p>
+              </article>
+            </div>
+
+            <div class="pipeline">
+              <div class="step"><b>1</b><strong>Scan</strong><span>`readdir(..., { recursive: true })` liest alle Knowledge-Einträge.</span></div>
+              <div class="step"><b>2</b><strong>Filter</strong><span>Nur Dateien mit unterstützter Extension werden verarbeitet.</span></div>
+              <div class="step"><b>3</b><strong>Parse</strong><span>`parseFile()` delegiert an PDF, DOCX, Text, JSON oder CSV Parser.</span></div>
+              <div class="step"><b>4</b><strong>Chunk</strong><span>`chunkByFileType()` erzeugt tokenbasierte Chunks.</span></div>
+              <div class="step"><b>5</b><strong>Embed</strong><span>OpenRouter Embeddings API erzeugt Vektoren.</span></div>
+              <div class="step"><b>6</b><strong>Persist</strong><span>`FileVectorStore.addChunks()` speichert den JSON-Index.</span></div>
+            </div>
+
+            <table style="margin-top: 18px">
+              <thead>
+                <tr>
+                  <th>Format</th>
+                  <th>Parser</th>
+                  <th>Verhalten</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>.md</code>, <code>.txt</code></td>
+                  <td><code>parseText()</code></td>
+                  <td>Liest UTF-8-Text direkt aus dem Dateisystem.</td>
+                </tr>
+                <tr>
+                  <td><code>.pdf</code></td>
+                  <td><code>parsePDF()</code></td>
+                  <td>Extrahiert Rohtext mit `pdf2json`; Dateien über 50 MB werden abgelehnt.</td>
+                </tr>
+                <tr>
+                  <td><code>.docx</code></td>
+                  <td><code>parseDOCX()</code></td>
+                  <td>Extrahiert Rohtext mit `mammoth.extractRawText()`.</td>
+                </tr>
+                <tr>
+                  <td><code>.json</code></td>
+                  <td><code>parseJSON()</code></td>
+                  <td>Parst JSON und serialisiert Objekte formatiert als lesbaren Text.</td>
+                </tr>
+                <tr>
+                  <td><code>.csv</code></td>
+                  <td><code>parseCSV()</code></td>
+                  <td>Wandelt Header in `Spalten:` und Datenzeilen in nummerierte Textzeilen um.</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <pre><code>export const RAG_CONFIG = {
+  knowledgeBasePath: join(process.cwd(), "src", "data", "knowledge-base"),
+  supportedFormats: [".pdf", ".docx", ".txt", ".md", ".json", ".csv"],
+  chunkTokens: 512,
+  chunkOverlapTokens: 32,
+  topK: 20,
+  minSimilarity: 0.3,
+  embeddingBatchSize: 16,
+  maxFileSizeMB: 50,
+};</code></pre>
+          </section>
+
+          <section id="retrieval">
+            <div class="section-head">
+              <div class="number">05</div>
+              <div>
+                <h2>Retrieval zur Laufzeit</h2>
+                <p class="lede">
+                  Pro Anfrage wird die User-Query eingebettet und mit allen Chunk-Embeddings im lokalen
+                  Index verglichen. Die besten Treffer werden als Kontext in den System-Prompt eingebettet.
+                </p>
+              </div>
+            </div>
+
+            <div class="grid">
+              <article class="card accent">
+                <h3>Similarity Search</h3>
+                <p>
+                  `FileVectorStore.search()` berechnet Cosine Similarity zwischen Query-Embedding
+                  und jedem gespeicherten Chunk-Embedding. Ergebnisse unter `minSimilarity` werden
+                  verworfen und danach absteigend sortiert.
+                </p>
+              </article>
+              <article class="card accent">
+                <h3>Kontextbudget</h3>
+                <p>
+                  `loadRelevantContext()` begrenzt den RAG-Kontext auf ungefähr 2000 Tokens. Chunks
+                  werden in Score-Reihenfolge angehängt, bis das Budget erreicht ist.
+                </p>
+              </article>
+            </div>
+
+            <pre><code>## Verfügbare Informationen:
+
+### chatbot-architecture.md (Chunk 0, Relevanz: 0.82)
+
+...relevanter Knowledge-Text...</code></pre>
+
+            <div class="note" style="margin-top: 18px">
+              Wenn keine Chunks gefunden werden oder der Index leer ist, liefert die RAG-Suche keinen
+              Zusatzkontext. Bei Fehlern in `loadDocuments.ts` fällt das System auf `loadFullContext(true)`
+              zurück, also System-Prompt plus klassische Dokumente aus `system-messages/documents`, sofern vorhanden.
+            </div>
+          </section>
+
+          <section id="llm">
+            <div class="section-head">
+              <div class="number">06</div>
+              <div>
+                <h2>LLM-Kommunikation</h2>
+                <p class="lede">
+                  Die Anwendung nutzt OpenRouter als einheitlichen Provider für mehrere Chat-Modelle.
+                  Chat-Antworten werden gestreamt, Suggestions werden als strukturiertes Objekt erzeugt.
+                </p>
+              </div>
+            </div>
+
+            <div class="grid">
+              <article class="card">
+                <h3>Chat Completion</h3>
+                <p>
+                  `/api/chat` erzeugt einen OpenRouter-Client mit `OPENROUTER_API_KEY`, wählt das
+                  vom Client gesendete Modell oder `google/gemini-2.5-flash-lite` als Fallback und
+                  ruft `streamText()` auf.
+                </p>
+              </article>
+              <article class="card">
+                <h3>Embeddings</h3>
+                <p>
+                  Die RAG-Schicht ruft `https://openrouter.ai/api/v1/embeddings` direkt per `fetch`
+                  auf. Als Embedding-Modell ist `text-embedding-3-small` hinterlegt.
+                </p>
+              </article>
+              <article class="card">
+                <h3>Message-Konvertierung</h3>
+                <p>
+                  Client-Messages liegen als `UIMessage[]` vor. Vor dem Provider-Aufruf werden sie
+                  mit `convertToModelMessages(messages)` in das Modellformat des AI SDK übertragen.
+                </p>
+              </article>
+              <article class="card">
+                <h3>Usage Logging</h3>
+                <p>
+                  `onFinish` loggt `finishReason` und `usage`. Das ist aktuell Debug-/Betriebsinformation
+                  und wird nicht an den Client zurückgegeben.
+                </p>
+              </article>
+            </div>
+
+            <pre><code>const openrouter = createOpenRouter({
+  apiKey: process.env.OPENROUTER_API_KEY,
+});
+
+const selectedModel = model || "google/gemini-2.5-flash-lite";</code></pre>
+          </section>
+
+          <section id="api">
+            <div class="section-head">
+              <div class="number">07</div>
+              <div>
+                <h2>API-Referenz</h2>
+                <p class="lede">
+                  Die API-Routen sind Next.js Route Handler. Alle relevanten AI-Antworten laufen über
+                  den Server, damit Prompts, Knowledge und API-Key nicht im Browser liegen.
+                </p>
+              </div>
+            </div>
+
+            <div class="api">
+              <article class="endpoint">
+                <div class="endpoint-head">
+                  <span class="method">POST</span>
+                  <span class="path">/api/chat</span>
+                </div>
+                <p>Hauptendpoint für Chat-Antworten mit RAG-Kontext und Streaming-Response.</p>
+                <pre><code>// Request
+{
+  "messages": UIMessage[],
+  "model": "google/gemini-2.5-flash-lite"
+}
+
+// Response
+AI SDK UIMessage stream via toUIMessageStreamResponse()</code></pre>
+              </article>
+
+              <article class="endpoint">
+                <div class="endpoint-head">
+                  <span class="method">POST</span>
+                  <span class="path">/api/suggestions</span>
+                </div>
+                <p>Generiert 3 bis 5 Folgefragen auf Basis des Chatverlaufs.</p>
+                <pre><code>// Response
+{
+  "suggestions": [
+    "Welche Komponenten sind beteiligt?",
+    "Wie wird der RAG-Index aktualisiert?"
+  ]
+}</code></pre>
+              </article>
+
+              <article class="endpoint">
+                <div class="endpoint-head">
+                  <span class="method get">GET</span>
+                  <span class="path">/api/rag/reindex</span>
+                </div>
+                <p>Liefert den aktuellen Index-Status mit Anzahl der Chunks und Dateien.</p>
+                <pre><code>{
+  "indexed": true,
+  "chunks": 42,
+  "files": 4,
+  "createdAt": 1710000000000,
+  "updatedAt": 1710000100000
+}</code></pre>
+              </article>
+
+              <article class="endpoint">
+                <div class="endpoint-head">
+                  <span class="method">POST</span>
+                  <span class="path">/api/rag/reindex</span>
+                </div>
+                <p>Startet manuelles Reindexing. Mit `{"force": true}` werden Dateien unabhängig von Hash/mtime neu verarbeitet.</p>
+                <pre><code>curl -X POST http://localhost:3000/api/rag/reindex \
+  -H "Content-Type: application/json" \
+  -d '{"force": true}'</code></pre>
+              </article>
+            </div>
+          </section>
+
+          <section id="config">
+            <div class="section-head">
+              <div class="number">08</div>
+              <div>
+                <h2>Konfiguration &amp; Betrieb</h2>
+                <p class="lede">
+                  Die wichtigsten Betriebsparameter liegen in Environment Variables, `constants.ts`
+                  und `RAG_CONFIG`. Der RAG-Index ist ein Cache-Artefakt und kann neu erzeugt werden.
+                </p>
+              </div>
+            </div>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>Konfiguration</th>
+                  <th>Ort</th>
+                  <th>Bedeutung</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>OPENROUTER_API_KEY</code></td>
+                  <td>Environment</td>
+                  <td>Pflichtwert für Chat Completion und Embeddings. Fehlt der Key, antworten die API-Routen mit Fehlern.</td>
+                </tr>
+                <tr>
+                  <td><code>MODELS</code></td>
+                  <td><code>src/lib/constants.ts</code></td>
+                  <td>Liste der im UI auswählbaren OpenRouter-Modell-IDs.</td>
+                </tr>
+                <tr>
+                  <td><code>RAG_CONFIG.cachePath</code></td>
+                  <td><code>src/lib/rag/config.ts</code></td>
+                  <td>Lokal `.next/cache/rag-index.json`, auf Vercel `/tmp/rag-index.json`.</td>
+                </tr>
+                <tr>
+                  <td><code>maxDuration</code></td>
+                  <td>API-Routen</td>
+                  <td>Antworten dürfen bis zu 30 Sekunden laufen.</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="grid" style="margin-top: 18px">
+              <article class="card warn">
+                <h3>Bekannte Einschränkungen</h3>
+                <p>
+                  Der aktuelle Vector Store ist dateibasiert und linear durchsucht. Das ist einfach
+                  betreibbar, aber für sehr große Knowledge Bases nicht optimal. OCR und PII-Redaction
+                  sind in der Konfiguration als Phase-2-Optionen markiert, aber nicht aktiv.
+                </p>
+              </article>
+              <article class="card warn">
+                <h3>Initialisierung</h3>
+                <p>
+                  `/api/chat` startet `initializeKnowledgeBase()` beim Modul-Load nicht-blockierend.
+                  Pro Request wird maximal 5 Sekunden darauf gewartet. Falls die Initialisierung noch läuft,
+                  versucht die Route trotzdem mit vorhandenem oder fallbackfähigem Kontext fortzufahren.
+                </p>
+              </article>
+            </div>
+          </section>
+
+          <section id="developer-reference">
+            <div class="section-head">
+              <div class="number">09</div>
+              <div>
+                <h2>Entwickler-Referenz</h2>
+                <p class="lede">
+                  Die folgenden Dateien sind die wichtigsten Einstiegspunkte, wenn Verhalten, Knowledge,
+                  Modellwahl oder Datenverarbeitung angepasst werden sollen.
+                </p>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="file-list">
+                <div class="file-item">
+                  <code>src/app/api/chat/route.ts</code>
+                  <span>Orchestriert Chat-Requests, wartet auf Knowledge-Initialisierung, lädt RAG-Kontext und streamt das LLM-Ergebnis.</span>
+                </div>
+                <div class="file-item">
+                  <code>src/lib/loadDocuments.ts</code>
+                  <span>Lädt System- und Suggestion-Prompts und kombiniert System-Prompt mit relevantem RAG-Kontext.</span>
+                </div>
+                <div class="file-item">
+                  <code>src/lib/rag/index.ts</code>
+                  <span>Enthält Indexierung, Embedding-Aufrufe, Suche und Kontextformatierung.</span>
+                </div>
+                <div class="file-item">
+                  <code>src/lib/rag/vectorStore.ts</code>
+                  <span>Implementiert JSON-basierten Vector Store, Persistenz und Cosine Similarity.</span>
+                </div>
+                <div class="file-item">
+                  <code>src/lib/rag/chunker.ts</code>
+                  <span>Teilt Text oder Code tokenbasiert in überlappende Chunks.</span>
+                </div>
+                <div class="file-item">
+                  <code>src/lib/rag/parsers.ts</code>
+                  <span>Extrahiert Text aus unterstützten Dateiformaten.</span>
+                </div>
+                <div class="file-item">
+                  <code>src/components/chatbot/ChatContext.tsx</code>
+                  <span>Zentraler Client-State, sendet Messages, verarbeitet Reset/Stop/Model-Wechsel und bindet Suggestions an.</span>
+                </div>
+                <div class="file-item">
+                  <code>src/hooks/useSuggestions.ts</code>
+                  <span>Triggert nach Assistant-Antworten debounced den Suggestions-Endpoint und verwaltet Abbruchzustände.</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid" style="margin-top: 18px">
+              <article class="card">
+                <h3>Typen</h3>
+                <p>
+                  Zentrale RAG-Typen sind `Chunk`, `ChunkMetadata`, `SearchResult`,
+                  `RelevantContext`, `VectorStoreIndex` und `FileIndexEntry`.
+                  Sie definieren die Struktur des gespeicherten Indexes und der Suchergebnisse.
+                </p>
+              </article>
+              <article class="card">
+                <h3>Erweiterungspunkte</h3>
+                <p>
+                  Neue Dateiformate werden über `supportedFormats` und `parseFile()` ergänzt.
+                  Neue Vector Stores können hinter dem `IVectorStore`-Interface umgesetzt werden.
+                  Neue Chat-Modelle werden in `MODELS` ergänzt.
+                </p>
+              </article>
+            </div>
+          </section>
+        </div>
+
+        <footer class="footer">
+          Erstellt als statische Entwicklerdokumentation. Diese Datei ist bewusst unabhängig vom Next.js-Build
+          und kann direkt aus dem Dateisystem im Browser geöffnet werden.
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>

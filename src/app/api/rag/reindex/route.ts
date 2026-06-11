@@ -1,14 +1,49 @@
 import { indexKnowledgeBase } from "@/lib/rag/index";
+import {
+  checkRateLimit,
+  getClientIp,
+  REINDEX_RATE_LIMIT,
+} from "@/lib/rateLimit";
 
 // Allow responses up to 30 seconds
 export const maxDuration = 30;
 
 /**
  * POST /api/rag/reindex
- * Manuelles Re-Indexing der Knowledge Base
+ * Manual re-indexing of the knowledge base. Protected by a secret token.
  */
 export async function POST(req: Request) {
   try {
+    // Auth check — require REINDEX_SECRET when set
+    const secret = process.env.REINDEX_SECRET;
+    if (secret) {
+      const provided = req.headers.get("x-reindex-secret");
+      if (provided !== secret) {
+        return new Response(
+          JSON.stringify({ success: false, error: "Unauthorized" }),
+          { status: 401, headers: { "Content-Type": "application/json" } },
+        );
+      }
+    }
+
+    // Rate limiting
+    const clientIp = getClientIp(req);
+    const rateLimitResult = checkRateLimit(clientIp, REINDEX_RATE_LIMIT);
+    if (!rateLimitResult.allowed) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Too many requests" }),
+        {
+          status: 429,
+          headers: {
+            "Content-Type": "application/json",
+            "Retry-After": String(
+              Math.ceil((rateLimitResult.retryAfterMs ?? 0) / 1000),
+            ),
+          },
+        },
+      );
+    }
+
     const { force } = await req.json().catch(() => ({}));
 
     const result = await indexKnowledgeBase(force === true);
@@ -24,7 +59,7 @@ export async function POST(req: Request) {
       },
     );
   } catch (error) {
-    console.error("Fehler beim Re-Indexing:", error);
+    console.error("Error during re-indexing:", error);
     return new Response(
       JSON.stringify({
         success: false,
@@ -40,7 +75,7 @@ export async function POST(req: Request) {
 
 /**
  * GET /api/rag/reindex
- * Status des Index
+ * Index status
  */
 export async function GET() {
   try {
@@ -76,7 +111,7 @@ export async function GET() {
       },
     );
   } catch (error) {
-    console.error("Fehler beim Abrufen des Index-Status:", error);
+    console.error("Error fetching index status:", error);
     return new Response(
       JSON.stringify({
         success: false,

@@ -5,8 +5,7 @@ import type { Model } from "./types";
  */
 export const MODELS: Model[] = [
   { id: "google/gemini-2.5-flash-lite", name: "Gemini 2.5 Flash" },
-  { id: "openai/gpt-5-nano", name: "GPT-5 Nano" },
-  { id: "x-ai/grok-4.1-fast", name: "Grok 4.1 Fast" },
+  { id: "x-ai/grok-4.3", name: "Grok 4.3" },
 ];
 
 /**
@@ -17,7 +16,7 @@ export const DEFAULT_MODEL_ID = MODELS[0].id;
 /**
  * Chatbot title displayed in header
  */
-export const CHATBOT_TITLE = "Nordi AI";
+export const CHATBOT_TITLE = "Jan AI";
 
 /**
  * User avatar URL
@@ -28,7 +27,7 @@ export const USER_AVATAR_URL =
 /**
  * Assistant avatar URL
  */
-export const ASSISTANT_AVATAR_URL = "/logo.png";
+export const ASSISTANT_AVATAR_URL = "/me.png";
 
 /**
  * Typewriter effect speed in milliseconds per character.

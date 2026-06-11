@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, memo } from "react";
 
-import { useChatContext } from "./ChatContext";
+import { useTypewriterContext } from "./ChatContext";
 
 interface TypewriterTextProps {
   text: string;
@@ -20,12 +20,14 @@ export const TypewriterText = memo(function TypewriterText({
   speed = 20, // Default: 20ms per character (50 chars/sec)
   children,
 }: TypewriterTextProps) {
+  // Guard against 0/negative speeds which would make setInterval misbehave.
+  const safeSpeed = Math.max(1, speed);
   const [displayedText, setDisplayedText] = useState("");
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const targetLengthRef = useRef(0);
+  const displayedLengthRef = useRef(0);
   const isStoppedRef = useRef(false);
   const previousTextRef = useRef("");
-  const { setIsChatbotTyping, chatIsStopped } = useChatContext();
+  const { setIsChatbotTyping, chatIsStopped } = useTypewriterContext();
 
   // Reset stopped state when text changes (new message)
   useEffect(() => {
@@ -61,16 +63,13 @@ export const TypewriterText = memo(function TypewriterText({
 
     if (text.length === 0) {
       setDisplayedText("");
-      targetLengthRef.current = 0;
+      displayedLengthRef.current = 0;
       setIsChatbotTyping(false);
       return;
     }
 
-    // Update target length
-    targetLengthRef.current = text.length;
-
     // If we're already at or past the target, just set it
-    if (displayedText.length >= text.length) {
+    if (displayedLengthRef.current >= text.length) {
       setDisplayedText(text);
       setIsChatbotTyping(false);
       return;
@@ -80,17 +79,17 @@ export const TypewriterText = memo(function TypewriterText({
     setIsChatbotTyping(true);
 
     // Animate from current length to target length
-    let currentIndex = displayedText.length;
+    let currentIndex = displayedLengthRef.current;
 
     intervalRef.current = setInterval(() => {
       if (
-        currentIndex < targetLengthRef.current &&
+        currentIndex < text.length &&
         !chatIsStopped &&
         !isStoppedRef.current
       ) {
-        setDisplayedText(text.slice(0, currentIndex + 1));
         currentIndex++;
-        setIsChatbotTyping(true);
+        displayedLengthRef.current = currentIndex;
+        setDisplayedText(text.slice(0, currentIndex));
       } else {
         if (intervalRef.current) {
           clearInterval(intervalRef.current);
@@ -98,7 +97,7 @@ export const TypewriterText = memo(function TypewriterText({
           setIsChatbotTyping(false);
         }
       }
-    }, speed);
+    }, safeSpeed);
 
     return () => {
       if (intervalRef.current) {
@@ -107,7 +106,9 @@ export const TypewriterText = memo(function TypewriterText({
       }
       setIsChatbotTyping(false);
     };
-  }, [text, speed, setIsChatbotTyping, chatIsStopped, displayedText.length]);
+    // displayedText.length removed — tracked via displayedLengthRef to avoid
+    // re-triggering this effect on every character update.
+  }, [text, safeSpeed, setIsChatbotTyping, chatIsStopped]);
 
   return <>{children(displayedText)}</>;
 });

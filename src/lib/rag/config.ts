@@ -1,7 +1,7 @@
 import { join } from "path";
 
 /**
- * Konfiguration für das RAG-System
+ * Configuration for the RAG system.
  */
 export const RAG_CONFIG = {
   knowledgeBasePath: join(process.cwd(), "src", "data", "knowledge-base"),
@@ -9,8 +9,8 @@ export const RAG_CONFIG = {
   chunkTokens: 512, // 512 tokens per chunk
   chunkOverlapTokens: 32,
   topK: 20,
-  minSimilarity: 0.3, // cosine similarity threshold (0.0-1.0, niedriger = mehr Ergebnisse)
-  // Verwende /tmp auf Vercel (persistent zwischen Requests) oder .next/cache lokal
+  minSimilarity: 0.5, // cosine similarity threshold (0.0-1.0, lower = more results)
+  // Use /tmp on Vercel (persists between requests) or .next/cache locally
   cachePath: process.env.VERCEL
     ? "/tmp/rag-index.json"
     : join(process.cwd(), ".next", "cache", "rag-index.json"),

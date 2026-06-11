@@ -10,9 +10,10 @@ import type {
   VectorStoreIndex,
   FileIndexEntry,
 } from "./types";
+import { logger } from "@/lib/logger";
 
 /**
- * File-based Vector Store Implementierung
+ * File-based Vector Store implementation.
  */
 export class FileVectorStore implements IVectorStore {
   private index: VectorStoreIndex | null = null;
@@ -23,7 +24,7 @@ export class FileVectorStore implements IVectorStore {
   }
 
   /**
-   * Berechnet Cosine Similarity zwischen zwei Vektoren
+   * Computes cosine similarity between two vectors.
    */
   private cosineSimilarity(a: number[], b: number[]): number {
     if (a.length !== b.length) {
@@ -45,7 +46,7 @@ export class FileVectorStore implements IVectorStore {
   }
 
   /**
-   * Lädt den Index aus der Datei
+   * Loads the index from disk.
    */
   async loadIndex(): Promise<VectorStoreIndex | null> {
     if (this.index) {
@@ -61,17 +62,17 @@ export class FileVectorStore implements IVectorStore {
       this.index = JSON.parse(content) as VectorStoreIndex;
       return this.index;
     } catch (error) {
-      console.warn("Fehler beim Laden des Index:", error);
+      logger.warn("Error loading index:", error);
       return null;
     }
   }
 
   /**
-   * Speichert den Index in die Datei
+   * Saves the index to disk.
    */
   async saveIndex(index: VectorStoreIndex): Promise<void> {
     try {
-      // Stelle sicher, dass das Verzeichnis existiert
+      // Ensure the directory exists
       const dir = dirname(this.indexPath);
       if (!existsSync(dir)) {
         await mkdir(dir, { recursive: true });
@@ -80,13 +81,13 @@ export class FileVectorStore implements IVectorStore {
       await writeFile(this.indexPath, JSON.stringify(index, null, 2), "utf-8");
       this.index = index;
     } catch (error) {
-      console.error("Fehler beim Speichern des Index:", error);
+      logger.error("Error saving index:", error);
       throw error;
     }
   }
 
   /**
-   * Initialisiert einen neuen Index
+   * Creates a new empty index.
    */
   private createNewIndex(): VectorStoreIndex {
     return {
@@ -99,14 +100,14 @@ export class FileVectorStore implements IVectorStore {
   }
 
   /**
-   * Speichert einen Chunk im Vector Store
+   * Stores a single chunk.
    */
   async addChunk(chunk: Chunk): Promise<void> {
     await this.addChunks([chunk]);
   }
 
   /**
-   * Speichert mehrere Chunks im Batch
+   * Stores multiple chunks in batch.
    */
   async addChunks(chunks: Chunk[]): Promise<void> {
     let index = await this.loadIndex();
@@ -117,11 +118,11 @@ export class FileVectorStore implements IVectorStore {
 
     // Füge Chunks hinzu
     for (const chunk of chunks) {
-      // Entferne alten Chunk mit gleicher ID falls vorhanden
+      // Remove existing chunk with the same ID
       index.chunks = index.chunks.filter((c) => c.id !== chunk.id);
       index.chunks.push(chunk);
 
-      // Aktualisiere File-Index
+      // Update file index
       const filePath = chunk.metadata.filePath;
       if (!index.fileIndex[filePath]) {
         index.fileIndex[filePath] = {
@@ -142,7 +143,7 @@ export class FileVectorStore implements IVectorStore {
   }
 
   /**
-   * Sucht ähnliche Chunks basierend auf Embedding
+   * Searches for similar chunks based on an embedding vector.
    */
   async search(
     queryEmbedding: number[],
@@ -156,7 +157,7 @@ export class FileVectorStore implements IVectorStore {
 
     const results: SearchResult[] = [];
 
-    // Berechne Similarity für alle Chunks mit Embeddings
+    // Compute similarity for all chunks with embeddings
     const allSimilarities: Array<{ chunk: Chunk; score: number }> = [];
     
     for (const chunk of index.chunks) {
@@ -164,10 +165,10 @@ export class FileVectorStore implements IVectorStore {
         continue;
       }
 
-      // Prüfe Dimensionen
+      // Check dimensions
       if (queryEmbedding.length !== chunk.embedding.length) {
-        console.warn(
-          `⚠️ Dimension-Mismatch: Query=${queryEmbedding.length}, Chunk=${chunk.embedding.length} für ${chunk.source}`,
+        logger.debug(
+          `Dimension mismatch: Query=${queryEmbedding.length}, Chunk=${chunk.embedding.length} for ${chunk.source}`,
         );
         continue;
       }
@@ -175,29 +176,17 @@ export class FileVectorStore implements IVectorStore {
       const similarity = this.cosineSimilarity(queryEmbedding, chunk.embedding);
       allSimilarities.push({ chunk, score: similarity });
     }
-    
-    // Log alle Similarities für Debugging
-    if (allSimilarities.length > 0) {
-      const sorted = [...allSimilarities].sort((a, b) => b.score - a.score);
-      console.log(
-        `🔢 Similarity-Scores (Top 5):`,
-        sorted.slice(0, 5).map((s) => ({
-          source: s.chunk.source,
-          score: s.score.toFixed(4),
-        })),
-      );
-    }
 
     const minSimilarity = options.minSimilarity ?? RAG_CONFIG.minSimilarity;
     
-    // Filtere nach minSimilarity
+    // Filter by minimum similarity
     for (const item of allSimilarities) {
       if (item.score >= minSimilarity) {
         results.push(item);
       }
     }
 
-    // Sortiere nach Score (höchste zuerst)
+    // Sort by score (highest first)
     results.sort((a, b) => b.score - a.score);
 
     // Return Top-K
@@ -205,7 +194,7 @@ export class FileVectorStore implements IVectorStore {
   }
 
   /**
-   * Löscht alle Chunks einer Datei
+   * Removes all chunks belonging to a file.
    */
   async removeFile(filePath: string): Promise<void> {
     const index = await this.loadIndex();
@@ -219,12 +208,12 @@ export class FileVectorStore implements IVectorStore {
       return;
     }
 
-    // Entferne Chunks
+    // Remove chunks
     index.chunks = index.chunks.filter(
       (chunk) => !fileEntry.chunkIds.includes(chunk.id),
     );
 
-    // Entferne File-Entry
+    // Remove file entry
     delete index.fileIndex[filePath];
 
     index.updatedAt = Date.now();
@@ -232,7 +221,7 @@ export class FileVectorStore implements IVectorStore {
   }
 
   /**
-   * Prüft ob eine Datei bereits indiziert ist und ob sie sich geändert hat
+   * Checks whether a file is indexed and whether it has changed.
    */
   getFileInfo(filePath: string): FileIndexEntry | null {
     if (!this.index) {
@@ -242,4 +231,3 @@ export class FileVectorStore implements IVectorStore {
     return this.index.fileIndex[filePath] || null;
   }
 }
-
