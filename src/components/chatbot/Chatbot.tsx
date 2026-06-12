@@ -19,7 +19,6 @@ import { cn } from "@/lib/utils";
  * Refactored for better performance, maintainability, and code quality.
  */
 
-
 const ChatbotContent = () => {
   const { isFullscreen, toggleFullscreen } = useChatShellContext();
   const [mounted, setMounted] = useState(false);
@@ -63,16 +62,11 @@ const ChatbotContent = () => {
       className={cn(
         isFullscreen
           ? "fixed inset-0 z-[99] h-[calc(100dvh-0rem)] w-[calc(100vw-0rem)]  p-2 "
-          : "h-full w-full rounded-xl "
+          : "h-full w-full rounded-xl ",
       )}
     >
-
-      <div
-        className="bg-card relative flex flex-col overflow-hidden shadow-xl border rounded-xl h-full"
-      >
-        <ChatHeader
-          title={CHATBOT_TITLE}
-        />
+      <div className="bg-card relative flex flex-col overflow-hidden shadow-xl border rounded-xl h-full">
+        <ChatHeader title={CHATBOT_TITLE} />
 
         <ChatMessages />
 
@@ -80,9 +74,7 @@ const ChatbotContent = () => {
 
         <ChatInput />
       </div>
-
     </motion.div>
-
   );
 
   if (isFullscreen && mounted) {

@@ -55,7 +55,9 @@ function DiagRow({
   return (
     <div className="flex items-start justify-between gap-2 py-0.5">
       <span className="text-muted-foreground shrink-0">{label}</span>
-      <span className={cn("text-right break-all", mono && "font-mono")}>{value}</span>
+      <span className={cn("text-right break-all", mono && "font-mono")}>
+        {value}
+      </span>
     </div>
   );
 }
@@ -63,11 +65,18 @@ function DiagRow({
 function ScoreBar({ score }: { score: number }) {
   const pct = Math.round(score * 100);
   const color =
-    score >= 0.75 ? "bg-green-500" : score >= 0.55 ? "bg-amber-500" : "bg-red-400";
+    score >= 0.75
+      ? "bg-green-500"
+      : score >= 0.55
+        ? "bg-amber-500"
+        : "bg-red-400";
   return (
     <div className="flex items-center gap-1.5">
       <div className="h-1.5 flex-1 rounded-full bg-muted overflow-hidden">
-        <div className={cn("h-full rounded-full", color)} style={{ width: `${pct}%` }} />
+        <div
+          className={cn("h-full rounded-full", color)}
+          style={{ width: `${pct}%` }}
+        />
       </div>
       <span className="text-muted-foreground tabular-nums w-8 text-right">
         {score.toFixed(2)}
@@ -79,11 +88,16 @@ function ScoreBar({ score }: { score: number }) {
 function ModeBadge({ mode }: { mode: "rag" | "full-context" | "fallback" }) {
   const styles = {
     rag: "bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20",
-    "full-context": "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20",
-    fallback: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20",
+    "full-context":
+      "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20",
+    fallback:
+      "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20",
   };
   return (
-    <Badge variant="outline" className={cn("text-[10px] h-4 px-1", styles[mode])}>
+    <Badge
+      variant="outline"
+      className={cn("text-[10px] h-4 px-1", styles[mode])}
+    >
       {mode}
     </Badge>
   );
@@ -103,7 +117,11 @@ function CopyButton({ text }: { text: string }) {
       className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
       aria-label="Kopieren"
     >
-      {copied ? <ClipboardCheck className="size-3" /> : <Clipboard className="size-3" />}
+      {copied ? (
+        <ClipboardCheck className="size-3" />
+      ) : (
+        <Clipboard className="size-3" />
+      )}
     </button>
   );
 }
@@ -123,16 +141,22 @@ function DiagnosticSection({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <Collapsible open={open} onOpenChange={setOpen} className="border-b last:border-0">
+    <Collapsible
+      open={open}
+      onOpenChange={setOpen}
+      className="border-b last:border-0"
+    >
       <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 text-xs font-medium hover:bg-muted/50 transition-colors">
         <div className="flex items-center gap-1.5">
           {icon}
           {title}
           {badge}
         </div>
-        {open
-          ? <ChevronUp className="size-3 text-muted-foreground" />
-          : <ChevronDown className="size-3 text-muted-foreground" />}
+        {open ? (
+          <ChevronUp className="size-3 text-muted-foreground" />
+        ) : (
+          <ChevronDown className="size-3 text-muted-foreground" />
+        )}
       </CollapsibleTrigger>
       <CollapsibleContent>
         <div className="px-3 pb-3 space-y-0.5 text-xs">{children}</div>
@@ -146,7 +170,10 @@ function ChunkCard({ chunk }: { chunk: ScoredChunkDiagnostic }) {
   return (
     <div className="rounded border bg-muted/30 p-2 space-y-1.5 text-xs">
       <div className="flex items-center justify-between gap-1">
-        <span className="font-medium truncate max-w-[160px]" title={chunk.source}>
+        <span
+          className="font-medium truncate max-w-[160px]"
+          title={chunk.source}
+        >
           {chunk.source}
         </span>
         <span className="text-muted-foreground shrink-0 tabular-nums">
@@ -161,7 +188,9 @@ function ChunkCard({ chunk }: { chunk: ScoredChunkDiagnostic }) {
         {chunk.used && (
           <>
             <span>·</span>
-            <span className="text-green-600 dark:text-green-400">verwendet</span>
+            <span className="text-green-600 dark:text-green-400">
+              verwendet
+            </span>
           </>
         )}
       </div>
@@ -169,20 +198,31 @@ function ChunkCard({ chunk }: { chunk: ScoredChunkDiagnostic }) {
         className="text-muted-foreground hover:text-foreground transition-colors text-left w-full"
         onClick={() => setExpanded((p) => !p)}
       >
-        {expanded
-          ? <span className="break-words whitespace-pre-wrap">{chunk.preview}</span>
-          : <span className="line-clamp-2">{chunk.preview}</span>}
+        {expanded ? (
+          <span className="break-words whitespace-pre-wrap">
+            {chunk.preview}
+          </span>
+        ) : (
+          <span className="line-clamp-2">{chunk.preview}</span>
+        )}
       </button>
     </div>
   );
 }
 
 /** Full raw text block with copy button and optional truncation */
-function RawTextBlock({ text, maxLines = 12 }: { text: string; maxLines?: number }) {
+function RawTextBlock({
+  text,
+  maxLines = 12,
+}: {
+  text: string;
+  maxLines?: number;
+}) {
   const [expanded, setExpanded] = useState(false);
   const lines = text.split("\n");
   const isLong = lines.length > maxLines || text.length > 1200;
-  const displayed = !isLong || expanded ? text : lines.slice(0, maxLines).join("\n") + "\n…";
+  const displayed =
+    !isLong || expanded ? text : lines.slice(0, maxLines).join("\n") + "\n…";
 
   return (
     <div className="relative mt-1">
@@ -255,7 +295,7 @@ function HistoryList({
                 "w-full text-left px-3 py-1.5 text-xs flex items-center gap-2 transition-colors",
                 isSelected
                   ? "bg-primary/10 text-foreground"
-                  : "hover:bg-muted/50 text-muted-foreground"
+                  : "hover:bg-muted/50 text-muted-foreground",
               )}
             >
               <span className="tabular-nums shrink-0 text-[10px] w-4 text-muted-foreground">
@@ -316,7 +356,9 @@ function DiagnosticDetail({ d }: { d: ChatRequestDiagnostic }) {
         defaultOpen={true}
       >
         {/* System Context */}
-        <p className="font-medium text-foreground pt-0.5 pb-0.5">System-Kontext</p>
+        <p className="font-medium text-foreground pt-0.5 pb-0.5">
+          System-Kontext
+        </p>
         {d.systemContextFull ? (
           <RawTextBlock text={d.systemContextFull} maxLines={10} />
         ) : (
@@ -337,7 +379,7 @@ function DiagnosticDetail({ d }: { d: ChatRequestDiagnostic }) {
                     "rounded border p-1.5 text-[10px]",
                     msg.role === "user"
                       ? "bg-primary/5 border-primary/20"
-                      : "bg-muted/40 border-border"
+                      : "bg-muted/40 border-border",
                   )}
                 >
                   <div className="flex items-center justify-between gap-1 mb-0.5">
@@ -347,7 +389,7 @@ function DiagnosticDetail({ d }: { d: ChatRequestDiagnostic }) {
                         "text-[9px] h-3.5 px-1",
                         msg.role === "user"
                           ? "border-primary/30 text-primary"
-                          : "border-border text-muted-foreground"
+                          : "border-border text-muted-foreground",
                       )}
                     >
                       {msg.role === "user" ? "User" : "Assistant"}
@@ -357,7 +399,10 @@ function DiagnosticDetail({ d }: { d: ChatRequestDiagnostic }) {
                   <p className="whitespace-pre-wrap break-all leading-relaxed">
                     {msg.content.slice(0, 300)}
                     {msg.content.length > 300 && (
-                      <span className="text-muted-foreground"> …({msg.content.length.toLocaleString()} Zeichen)</span>
+                      <span className="text-muted-foreground">
+                        {" "}
+                        …({msg.content.length.toLocaleString()} Zeichen)
+                      </span>
                     )}
                   </p>
                 </div>
@@ -391,7 +436,7 @@ function DiagnosticDetail({ d }: { d: ChatRequestDiagnostic }) {
                     "text-[10px] h-4 px-1",
                     d.finishReason === "stop"
                       ? "text-green-700 dark:text-green-400"
-                      : "text-amber-700 dark:text-amber-400"
+                      : "text-amber-700 dark:text-amber-400",
                   )}
                 >
                   {d.finishReason}
@@ -446,10 +491,24 @@ function DiagnosticDetail({ d }: { d: ChatRequestDiagnostic }) {
           />
         )}
         <DiagRow label="Abruf" value={`${d.retrievalDurationMs} ms`} mono />
-        <DiagRow label="Kandidaten" value={`${d.retrieval.candidates.length} / ${d.config.topK}`} />
-        <DiagRow label="Verwendet" value={`${d.retrieval.usedChunks.length} Chunks`} />
-        <DiagRow label="Min. Ähnlichkeit" value={d.config.minSimilarity.toString()} mono />
-        <DiagRow label="Embedding-Modell" value={d.config.embeddingModel} mono />
+        <DiagRow
+          label="Kandidaten"
+          value={`${d.retrieval.candidates.length} / ${d.config.topK}`}
+        />
+        <DiagRow
+          label="Verwendet"
+          value={`${d.retrieval.usedChunks.length} Chunks`}
+        />
+        <DiagRow
+          label="Min. Ähnlichkeit"
+          value={d.config.minSimilarity.toString()}
+          mono
+        />
+        <DiagRow
+          label="Embedding-Modell"
+          value={d.config.embeddingModel}
+          mono
+        />
       </DiagnosticSection>
 
       {/* Prompt Stats */}
@@ -462,7 +521,9 @@ function DiagnosticDetail({ d }: { d: ChatRequestDiagnostic }) {
           label="System-Prompt"
           value={
             d.prompt.systemPromptIncluded ? (
-              <span className="text-green-600 dark:text-green-400">enthalten</span>
+              <span className="text-green-600 dark:text-green-400">
+                enthalten
+              </span>
             ) : (
               <span className="text-muted-foreground">fehlt</span>
             )
@@ -495,7 +556,9 @@ function DiagnosticDetail({ d }: { d: ChatRequestDiagnostic }) {
         }
       >
         {d.retrieval.candidates.length === 0 ? (
-          <p className="text-muted-foreground py-1">Keine Kandidaten gefunden.</p>
+          <p className="text-muted-foreground py-1">
+            Keine Kandidaten gefunden.
+          </p>
         ) : (
           <div className="space-y-2 pt-1">
             {d.retrieval.candidates.map((chunk) => (
@@ -513,9 +576,17 @@ function DiagnosticDetail({ d }: { d: ChatRequestDiagnostic }) {
       >
         <DiagRow label="topK" value={d.config.topK} mono />
         <DiagRow label="minSimilarity" value={d.config.minSimilarity} mono />
-        <DiagRow label="maxContextTokens" value={d.config.maxContextTokens} mono />
+        <DiagRow
+          label="maxContextTokens"
+          value={d.config.maxContextTokens}
+          mono
+        />
         <DiagRow label="chunkTokens" value={d.config.chunkTokens} mono />
-        <DiagRow label="chunkOverlapTokens" value={d.config.chunkOverlapTokens} mono />
+        <DiagRow
+          label="chunkOverlapTokens"
+          value={d.config.chunkOverlapTokens}
+          mono
+        />
       </DiagnosticSection>
     </>
   );
@@ -551,7 +622,11 @@ function IndexStatusSection() {
 
   return (
     <div className="border-t">
-      <DiagnosticSection title="Index-Status" icon={<Zap className="size-3" />} defaultOpen={false}>
+      <DiagnosticSection
+        title="Index-Status"
+        icon={<Zap className="size-3" />}
+        defaultOpen={false}
+      >
         {loading ? (
           <LoadingSkeleton />
         ) : indexStatus ? (
@@ -559,12 +634,16 @@ function IndexStatusSection() {
             <DiagRow
               label="Indiziert"
               value={
-                indexStatus.indexed
-                  ? <span className="text-green-600 dark:text-green-400">ja</span>
-                  : <span className="text-destructive">nein</span>
+                indexStatus.indexed ? (
+                  <span className="text-green-600 dark:text-green-400">ja</span>
+                ) : (
+                  <span className="text-destructive">nein</span>
+                )
               }
             />
-            {indexStatus.version && <DiagRow label="Version" value={indexStatus.version} mono />}
+            {indexStatus.version && (
+              <DiagRow label="Version" value={indexStatus.version} mono />
+            )}
             <DiagRow label="Dateien" value={indexStatus.fileCount} />
             <DiagRow label="Chunks" value={indexStatus.chunkCount} />
             <DiagRow
@@ -601,9 +680,10 @@ export const DiagnosticPanel = memo(function DiagnosticPanel() {
   const { isFullscreen } = useChatShellContext();
   const { isChatInProgress } = useChatSubmitControlsContext();
 
-  if (!isDiagnosticPanelOpen || isFullscreen) return null;
+  if (!isDiagnosticPanelOpen) return null;
 
-  const showSkeleton = (isChatInProgress || isFetchingDiagnostic) && !currentDiagnostic;
+  const showSkeleton =
+    (isChatInProgress || isFetchingDiagnostic) && !currentDiagnostic;
 
   return (
     <div className="bg-card border rounded-xl shadow-xl flex flex-col h-full overflow-hidden w-[360px] shrink-0">
@@ -637,7 +717,9 @@ export const DiagnosticPanel = memo(function DiagnosticPanel() {
         {!currentDiagnostic && !showSkeleton && (
           <div className="flex flex-col items-center justify-center h-32 gap-2 text-muted-foreground">
             <Activity className="size-5 opacity-40" />
-            <p className="text-xs">Sende eine Nachricht, um Diagnostik zu sehen.</p>
+            <p className="text-xs">
+              Sende eine Nachricht, um Diagnostik zu sehen.
+            </p>
           </div>
         )}
 

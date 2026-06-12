@@ -2,7 +2,13 @@
 
 import { memo } from "react";
 
-import { FlaskConical, Maximize, Minimize2, RotateCcwIcon, Sparkles } from "lucide-react";
+import {
+  FlaskConical,
+  Maximize,
+  Minimize2,
+  RotateCcwIcon,
+  Sparkles,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useChatShellContext, useDiagnosticContext } from "./ChatContext";
@@ -17,7 +23,8 @@ interface ChatHeaderProps {
  */
 export const ChatHeader = memo(function ChatHeader({ title }: ChatHeaderProps) {
   const { handleReset, isFullscreen, toggleFullscreen } = useChatShellContext();
-  const { isDiagnosticPanelOpen, toggleDiagnosticPanel } = useDiagnosticContext();
+  const { isDiagnosticPanelOpen, toggleDiagnosticPanel } =
+    useDiagnosticContext();
 
   return (
     <div className="bg-muted/50 relative flex items-center justify-between border-b px-2 py-1">
@@ -48,7 +55,11 @@ export const ChatHeader = memo(function ChatHeader({ title }: ChatHeaderProps) {
           variant={isDiagnosticPanelOpen ? "secondary" : "ghost"}
           onClick={toggleDiagnosticPanel}
           className="group h-fit gap-0 py-1 px-1.5 text-xs"
-          aria-label={isDiagnosticPanelOpen ? "Diagnostics schließen" : "Diagnostics öffnen"}
+          aria-label={
+            isDiagnosticPanelOpen
+              ? "Diagnostics schließen"
+              : "Diagnostics öffnen"
+          }
         >
           <FlaskConical className="size-3 transition-all duration-300 text-primary/60" />
           <span className="ml-1 overflow-hidden duration-300 sm:ml-0 sm:w-0 md:group-hover:w-20 text-primary/60">
